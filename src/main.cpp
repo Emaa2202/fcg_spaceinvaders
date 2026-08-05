@@ -16,10 +16,20 @@ int main()
 	double background_scale_y = (static_cast<float>(desktop.size.y) / background.getSize().y);
 	background_sprite.setScale(sf::Vector2f(background_scale_x, background_scale_y));
 	
-	//bozza statica del giocatore
+	//giocatore (statico)
 	sf::Texture player(player_png, player_png_len);
 	sf::Sprite player_sprite(player); //serve per renderlo drawable
-	//player_sprite.setPosition(sf::Vector2f(desktop.size.x / 2, desktop.size.y * 0.8)); 
+
+	//sposta origine al centro della texture
+    float player_centro_x = static_cast<float>(player.getSize().x) / 2.0;
+    float player_centro_y = static_cast<float>(player.getSize().y) / 2.0;
+    player_sprite.setOrigin(sf::Vector2f(player_centro_x, player_centro_y));
+
+	player_sprite.setScale(sf::Vector2f(0.5, 0.5));
+	player_sprite.setPosition(sf::Vector2f(static_cast<float>(desktop.size.x) / 2, static_cast<float>(desktop.size.y) * 0.8)); 
+
+
+
 
 	while (window.isOpen()) {
 		while (const std::optional event = window.pollEvent()) {
