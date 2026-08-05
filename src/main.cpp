@@ -99,8 +99,7 @@ void doGraphics(State &gs) {
 int main() {
     State gs;
     
-    while (gs.window.isOpen()) 
-    {
+    while (gs.window.isOpen()) {
         
         gs.window.handleEvents([&](const auto &event)
                                { handle(event, gs); });
