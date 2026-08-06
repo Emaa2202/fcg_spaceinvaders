@@ -73,6 +73,7 @@ struct State {
     }
 };
 
+
 /*-----------------------------------------
 -----Funzioni callback gestione eventi-----
 -----------------------------------------*/
@@ -80,19 +81,27 @@ void handle(const sf::Event::Closed &, State &gs) {
     gs.window.close();
 }
 
+	
+template <typename T>
+void handle(const T &, State &gs) { //eventi non gestiti esplicitamente
+    
+}
 
-//gestione tasti
-void handle(const sf::Event::KeyPressed &keyPressed, State &gs) {
-	int speed = 30;
-	float half_width = (gs.player.getSize().x * gs.player_sprite.getScale().x) / 2.0f; //calcolo larghezza/2 dello sprite per non farlo fuoriuscire
 
-	if(keyPressed.scancode == sf::Keyboard::Scancode::Left) {
+/*-----------------------------
+------Logica base del gioco----
+------------------------------*/
+void update(State& gs) {
+    int speed = 10; //controllando a ogni frame (non piu handle) va diminuita la velocita 
+
+	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Left)) { //isKeyPressed invece di keyPressed per controllo tempo reale, permette di muoversi e sparare insieme
 	    gs.playerpos.x -= speed;
 	}
-	else if(keyPressed.scancode == sf::Keyboard::Scancode::Right) {
+	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Right)) {
 		gs.playerpos.x += speed;
 	}
 
+    float half_width = (gs.player.getSize().x * gs.player_sprite.getScale().x) / 2.0f; //calcolo larghezza/2 dello sprite per non farlo fuoriuscire
 	float min_x = half_width; //mezzo sprite (sx)
     float max_x = static_cast<float>(gs.window.getSize().x) - half_width; //x schermo - mezzo sprite (dx)
 
@@ -101,19 +110,20 @@ void handle(const sf::Event::KeyPressed &keyPressed, State &gs) {
 
 	gs.player_sprite.setPosition(gs.playerpos);
 
-	if(keyPressed.scancode == sf::Keyboard::Scancode::Space) {
+	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Space)) {
 	    if(gs.bullet_clock.getElapsedTime().asSeconds() >= 0.45) {
             gs.bullets.push_back(Bullet(gs.bullet_texture, gs.playerpos));
             gs.bullet_clock.restart();
         }
     }
+
+    //scorrimento proiettili player
+    for(auto& bullet : gs.bullets) {
+        bullet.pos.y -= bullet.speed;        
+        bullet.sprite.setPosition(bullet.pos); 
+    }
 }
 
-	
-template <typename T>
-void handle(const T &, State &gs) { //eventi non gestiti esplicitamente
-    
-}
 
 /*--------------
 ------Grafica---
@@ -134,6 +144,7 @@ void doGraphics(State &gs) {
     gs.window.display();
 }
 
+
 /*--------------
 ---Main loop----
 --------------*/
@@ -145,11 +156,7 @@ int main() {
         gs.window.handleEvents([&](const auto &event)
                                { handle(event, gs); });
 
-        //scorrimento proiettili player
-        for(auto& bullet : gs.bullets) {
-            bullet.pos.y -= bullet.speed;        
-            bullet.sprite.setPosition(bullet.pos); 
-        }
+        update(gs);
 
         doGraphics(gs);
     }
