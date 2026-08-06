@@ -2,6 +2,9 @@
 #include <algorithm> //per clamp che mi semplifica il movimento 
 #include <vector>
 #include "textures.hpp"
+#include "a.hpp"
+#include "b.hpp"
+#include "c.hpp"
 
 struct Bullet {
 	sf::Vector2f pos;
@@ -10,7 +13,7 @@ struct Bullet {
 
 	Bullet(const sf::Texture& texture, sf::Vector2f pos_iniziale) :
 		pos(pos_iniziale),
-		speed(20.0),
+		speed(15.0),
 		sprite(texture)
 	{
 		float centro_x = static_cast<float>(texture.getSize().x) / 2.0;
@@ -19,6 +22,28 @@ struct Bullet {
 		
 		sprite.setPosition(pos);
 	}
+};
+
+enum enemyType {
+    Type1,
+    Type2,
+    Type3
+};
+
+struct Enemy {
+    enemyType type;
+    sf::Sprite sprite;
+    bool isAlive;
+
+    Enemy(const sf::Texture& texture, enemyType init_type) :
+        sprite(texture),
+        type(init_type),
+        isAlive(true)
+    {
+        float centro_x = static_cast<float>(texture.getSize().x) / 2.0;
+        float centro_y = static_cast<float>(texture.getSize().y) / 2.0;
+        sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
+    }
 };
 
 
@@ -40,6 +65,15 @@ struct State {
 	std::vector<Bullet> bullets;
     sf::Clock bullet_clock; //serve per tenere traccia del cooldown
 
+    std::vector<Enemy> enemies;
+    int rows = 3;
+    int columns = 10;
+    float distX = 800.0; //distanze tra un nemico e l altro
+    float distY = 400.0;
+    sf::Texture enemy1_texture;
+    sf::Texture enemy3_texture;
+    sf::Texture enemy2_texture;
+
     //caricamento texture e collegamento agli sprite prima del corpo del costruttore
     State() :
         background(spacebackground_jpg, spacebackground_jpg_len),
@@ -48,7 +82,11 @@ struct State {
 		player(player_png, player_png_len),
         player_sprite(player),
 		
-		bullet_texture(bullet_png, bullet_png_len)
+		bullet_texture(bullet_png, bullet_png_len),
+
+        enemy1_texture(enemy1_png, enemy1_png_len),
+        enemy2_texture(enemy2_jpeg, enemy2_jpeg_len),
+        enemy3_texture(enemy3_jpeg, enemy3_jpeg_len)
     {
         //recupero desktop e creazione finestra
         sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
@@ -70,6 +108,29 @@ struct State {
 
 		//posizione player
 		playerpos = player_sprite.getPosition();
+
+
+
+        //posizionamento nemici
+        for(int i = 0; i < rows; i++) {
+            for(int j = 0; j < columns; j++) {
+                if(i == 0){
+                    Enemy en(enemy1_texture, Type1);
+                    en.sprite.setPosition(sf::Vector2f(j * distX, i * distY));
+                    enemies.push_back(en);
+                } 
+                else if(i == 1){
+                    Enemy en(enemy2_texture, Type2);
+                    en.sprite.setPosition(sf::Vector2f(j * distX, i * distY));
+                    enemies.push_back(en);
+                }
+                else {
+                    Enemy en(enemy3_texture, Type3);
+                    en.sprite.setPosition(sf::Vector2f(j * distX, i * distY));
+                    enemies.push_back(en);
+                }
+            }
+        }
     }
 };
 
@@ -132,6 +193,11 @@ void doGraphics(State &gs) {
     //sfondo
     gs.window.clear();
     gs.window.draw(gs.background_sprite);
+
+    //nemici
+	for (const auto& enemy : gs.enemies) {
+        gs.window.draw(enemy.sprite);
+    }
 
 	//proiettili giocatore
 	for (const auto& bullet : gs.bullets) {
