@@ -1,6 +1,25 @@
 #include <SFML/Graphics.hpp>
 #include <algorithm> //per clamp che mi semplifica il movimento 
+#include <vector>
 #include "textures.hpp"
+
+struct Bullet {
+	sf::Vector2f pos;
+	float speed;
+	sf::Sprite sprite;
+
+	Bullet(const sf::Texture& texture, sf::Vector2f pos_iniziale) :
+		pos(pos_iniziale),
+		speed(20.0),
+		sprite(texture)
+	{
+		float centro_x = static_cast<float>(texture.getSize().x) / 2.0;
+        float centro_y = static_cast<float>(texture.getSize().y) / 2.0;
+        sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
+		
+		sprite.setPosition(pos);
+	}
+};
 
 
 /*----------------------
@@ -9,18 +28,27 @@
 struct State {
     //risorse generali
     sf::RenderWindow window;
+
     sf::Texture background;
     sf::Sprite background_sprite;
-    sf::Texture player;
+    
+	sf::Texture player;
     sf::Sprite player_sprite;
 	sf::Vector2f playerpos;
+
+	sf::Texture bullet_texture;
+	std::vector<Bullet> bullets;
+    sf::Clock bullet_clock; //serve per tenere traccia del cooldown
 
     //caricamento texture e collegamento agli sprite prima del corpo del costruttore
     State() :
         background(spacebackground_jpg, spacebackground_jpg_len),
         background_sprite(background),
-        player(player_png, player_png_len),
-        player_sprite(player)
+        
+		player(player_png, player_png_len),
+        player_sprite(player),
+		
+		bullet_texture(bullet_png, bullet_png_len)
     {
         //recupero desktop e creazione finestra
         sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
@@ -53,6 +81,7 @@ void handle(const sf::Event::Closed &, State &gs) {
 }
 
 
+//gestione tasti
 void handle(const sf::Event::KeyPressed &keyPressed, State &gs) {
 	int speed = 30;
 	float half_width = (gs.player.getSize().x * gs.player_sprite.getScale().x) / 2.0f; //calcolo larghezza/2 dello sprite per non farlo fuoriuscire
@@ -71,9 +100,16 @@ void handle(const sf::Event::KeyPressed &keyPressed, State &gs) {
     gs.playerpos.x = std::clamp(gs.playerpos.x, min_x, max_x);
 
 	gs.player_sprite.setPosition(gs.playerpos);
+
+	if(keyPressed.scancode == sf::Keyboard::Scancode::Space) {
+	    if(gs.bullet_clock.getElapsedTime().asSeconds() >= 0.45) {
+            gs.bullets.push_back(Bullet(gs.bullet_texture, gs.playerpos));
+            gs.bullet_clock.restart();
+        }
+    }
 }
 
-		
+	
 template <typename T>
 void handle(const T &, State &gs) { //eventi non gestiti esplicitamente
     
@@ -86,6 +122,11 @@ void doGraphics(State &gs) {
     //sfondo
     gs.window.clear();
     gs.window.draw(gs.background_sprite);
+
+	//proiettili giocatore
+	for (const auto& bullet : gs.bullets) {
+        gs.window.draw(bullet.sprite);
+    }
 
     //giocatore
     gs.window.draw(gs.player_sprite);
@@ -103,6 +144,12 @@ int main() {
         
         gs.window.handleEvents([&](const auto &event)
                                { handle(event, gs); });
+
+        //scorrimento proiettili player
+        for(auto& bullet : gs.bullets) {
+            bullet.pos.y -= bullet.speed;        
+            bullet.sprite.setPosition(bullet.pos); 
+        }
 
         doGraphics(gs);
     }
