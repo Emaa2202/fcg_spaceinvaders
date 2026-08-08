@@ -148,7 +148,7 @@ struct State {
         float startX = (screenWidth - gridWidth) / 2; //posizionamento effettivo griglia
         float startY = screenHeight * 0.15;
         
-        for(int i = 0; i < rows; i++) {
+        for(int i = 0; i < rows; i++) { //con ij inizializzo le coordinate in vector monodimensionale, verranno poi salvate nello sprite
             for(int j = 0; j < columns; j++) {
                 float posX = startX + (j * distX);
                 float posY = startY + (i * distY);
