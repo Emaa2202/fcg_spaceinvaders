@@ -2,9 +2,9 @@
 #include <algorithm> //per clamp che mi semplifica il movimento 
 #include <vector>
 #include "textures.hpp"
-#include "a.hpp"
-#include "b.hpp"
-#include "c.hpp"
+#include "enemy1.hpp"
+#include "enemy2.hpp"
+#include "enemy3.hpp"
 
 struct Bullet {
 	sf::Vector2f pos;
@@ -35,15 +35,41 @@ struct Enemy {
     sf::Sprite sprite;
     bool isAlive;
 
+    //animazione
+    int frameWidth;
+    int frameHeight;
+    int currentFrame = 0;
+    sf::Clock cornometro_animaz;
+    float sec_per_frame = 0.8;
+
     Enemy(const sf::Texture& texture, enemyType init_type) :
         sprite(texture),
         type(init_type),
         isAlive(true)
     {
-        float centro_x = static_cast<float>(texture.getSize().x) / 2.0;
-        float centro_y = static_cast<float>(texture.getSize().y) / 2.0;
+        frameWidth = texture.getSize().x / 2.0; //2 frame, dim divise per 2
+        frameHeight = texture.getSize().y;
+
+        sprite.setTextureRect(sf::IntRect({0, 0}, {frameWidth, frameHeight})); //sprite predefinito, y sempre 0 perchè uso hpp 
+
+        float centro_x = static_cast<float>(frameWidth) / 2; //centro calcolato su singolo frame
+        float centro_y = static_cast<float>(frameHeight) / 2;
         sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
     }
+
+    void animate() {
+        if(cornometro_animaz.getElapsedTime().asSeconds() >= sec_per_frame) {
+            currentFrame = 1 - currentFrame; //alterna i frame
+
+            //currentFrame = 0 ---> X = 0
+            //currentFrame = 1 ---> X = frameWidth
+            int rectX = currentFrame * frameWidth;
+            sprite.setTextureRect(sf::IntRect({rectX, 0}, {frameWidth, frameHeight})); //cambio sprite
+
+            cornometro_animaz.restart();
+        }
+    }
+
 };
 
 
@@ -68,8 +94,8 @@ struct State {
     std::vector<Enemy> enemies;
     int rows = 3;
     int columns = 10;
-    float distX = 800.0; //distanze tra un nemico e l altro
-    float distY = 400.0;
+    float distX = 300.0; //distanze tra un nemico e l altro
+    float distY = 200.0;
     sf::Texture enemy1_texture;
     sf::Texture enemy3_texture;
     sf::Texture enemy2_texture;
@@ -84,11 +110,11 @@ struct State {
 		
 		bullet_texture(bullet_png, bullet_png_len),
 
-        enemy1_texture(enemy1_png, enemy1_png_len),
-        enemy2_texture(enemy2_jpeg, enemy2_jpeg_len),
-        enemy3_texture(enemy3_jpeg, enemy3_jpeg_len)
+        enemy1_texture(enemy1_sheet_png, enemy1_sheet_png_len),
+        enemy2_texture(enemy2_sheet_png, enemy2_sheet_png_len),
+        enemy3_texture(enemy3_sheet_png, enemy3_sheet_png_len)
     {
-        //recupero desktop e creazione finestra
+        //creazione finestra
         sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
         window.create(sf::VideoMode({desktop.size.x, desktop.size.y}), "Space Invaders");
         window.setFramerateLimit(60);
@@ -109,28 +135,44 @@ struct State {
 		//posizione player
 		playerpos = player_sprite.getPosition();
 
+        //posizione nemici
+        float screenWidth = static_cast<float>(desktop.size.x);
+        float screenHeight = static_cast<float>(desktop.size.y);
 
+        float distX = 300; //distanze tra nemici
+        float distY = 200;
 
-        //posizionamento nemici
+        float gridWidth = (columns - 1) * distX; //dimensioni griglia
+        float gridHeight = (rows - 1) * distY;
+
+        float startX = (screenWidth - gridWidth) / 2; //posizionamento effettivo griglia
+        float startY = screenHeight * 0.15;
+        
         for(int i = 0; i < rows; i++) {
             for(int j = 0; j < columns; j++) {
-                if(i == 0){
+                float posX = startX + (j * distX);
+                float posY = startY + (i * distY);
+            
+                if(i == 2){
                     Enemy en(enemy1_texture, Type1);
-                    en.sprite.setPosition(sf::Vector2f(j * distX, i * distY));
+                    en.sprite.setPosition(sf::Vector2f(posX, posY));
+                    en.sprite.setScale(sf::Vector2f(0.8, 0.8));
                     enemies.push_back(en);
                 } 
                 else if(i == 1){
                     Enemy en(enemy2_texture, Type2);
-                    en.sprite.setPosition(sf::Vector2f(j * distX, i * distY));
+                    en.sprite.setPosition(sf::Vector2f(posX, posY));
+                    en.sprite.setScale(sf::Vector2f(1.2, 1.2));
                     enemies.push_back(en);
                 }
                 else {
                     Enemy en(enemy3_texture, Type3);
-                    en.sprite.setPosition(sf::Vector2f(j * distX, i * distY));
+                    en.sprite.setPosition(sf::Vector2f(posX, posY));
                     enemies.push_back(en);
                 }
             }
         }
+        
     }
 };
 
@@ -182,6 +224,11 @@ void update(State& gs) {
     for(auto& bullet : gs.bullets) {
         bullet.pos.y -= bullet.speed;        
         bullet.sprite.setPosition(bullet.pos); 
+    }
+
+    //sprite nemici
+    for (auto& enemy : gs.enemies) {
+        enemy.animate();
     }
 }
 
