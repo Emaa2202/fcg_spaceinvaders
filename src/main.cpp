@@ -40,6 +40,7 @@ struct Enemy {
     int frameHeight;
     int currentFrame = 0;
     sf::Clock anim_clock;
+    sf::Clock anim_clock;
     float sec_per_frame = 0.8;
 
     Enemy(const sf::Texture& texture, enemyType init_type) :
@@ -59,6 +60,7 @@ struct Enemy {
 
     void animate() {
         if(anim_clock.getElapsedTime().asSeconds() >= sec_per_frame) {
+        if(anim_clock.getElapsedTime().asSeconds() >= sec_per_frame) {
             currentFrame = 1 - currentFrame; //alterna i frame
 
             //currentFrame = 0 ---> X = 0
@@ -66,6 +68,7 @@ struct Enemy {
             int rectX = currentFrame * frameWidth;
             sprite.setTextureRect(sf::IntRect({rectX, 0}, {frameWidth, frameHeight})); //cambio sprite
 
+            anim_clock.restart();
             anim_clock.restart();
         }
     }
@@ -99,9 +102,10 @@ struct State {
     sf::Texture enemy3_texture;
     sf::Texture enemy2_texture;
 
-    sf::Clock anim_clock;
+    sf::Clock move_clock; //per spostamento nemici
+    bool right_dir = true; //direzione nemici, prima era sotto ma mi serve persistente
 
-    //caricamento texture e collegamento agli sprite prima del corpo del costruttore
+    //caricamento texture e collegamento agli sprite 
     State() :
         background(spacebackground_jpg, spacebackground_jpg_len),
         background_sprite(background),
@@ -110,7 +114,7 @@ struct State {
         player_sprite(player),
 		
 		bullet_texture(bullet_png, bullet_png_len),
-
+        
         enemy1_texture(enemy1_sheet_png, enemy1_sheet_png_len),
         enemy2_texture(enemy2_sheet_png, enemy2_sheet_png_len),
         enemy3_texture(enemy3_sheet_png, enemy3_sheet_png_len)
@@ -180,6 +184,7 @@ struct State {
         float maxX = static_cast<float>(desktop.size.x) - 30.0;
         
     }
+
 };
 
 
@@ -232,34 +237,45 @@ void update(State& gs) {
         bullet.sprite.setPosition(bullet.pos); 
     }
 
-    
     //spostamento nemici
-    float current_right= gs.enemies[gs.enemies.size()-1].sprite.getPosition().x;
-    float current_left = gs.enemies[0].sprite.getPosition().x;
-    float dist = 100;
-    bool dir_right = true;
-    if(gs.anim_clock.getElapsedTime().asSeconds() >= 1.0) {
-        float move_value;
-        if(current_right + dist < gs.window.getSize().x) {
-            dir_right = true;
-            current_left += dist;
-            current_right += dist;
-            move_value = dist;
+    if(gs.move_clock.getElapsedTime().asSeconds() >= 1.0) {
+        if(!gs.enemies.empty()) {
+            float dist = 100;
+            bool edge = false;
+
+            float minX = gs.enemies[0].sprite.getPosition().x; //trova estremi
+            float maxX = minX;
+            for(auto& enemy : gs.enemies) {
+                float x = enemy.sprite.getPosition().x;
+                if(x > maxX) maxX = x;
+                if(x < minX) minX = x;
+            }
+            
+            float windowWidth = static_cast<float>(gs.window.getSize().x);
+            
+            if((maxX + dist >= windowWidth && gs.right_dir) || (minX - dist <= 0 && !gs.right_dir)) {
+                edge = true;
+            }
+
+            if(edge) {
+                gs.right_dir = !gs.right_dir;
+                for (auto& enemy : gs.enemies) {
+                    enemy.sprite.move(sf::Vector2f(0.0, 30.0)); //nemici scendono
+                    enemy.animate(); //sprite animaz
+                }
+            }
+            else {
+                for(auto& enemy : gs.enemies) {
+                    if(gs.right_dir) enemy.sprite.move(sf::Vector2f(dist, 0.0));
+                    else enemy.sprite.move(sf::Vector2f(-dist, 0.0));
+                    enemy.animate();  
+                }
+            }
+             gs.move_clock.restart();
+            
         }
-        else if(current_left - dist != 0) {
-            dir_right = false;
-            current_left -= dist;
-            current_right -= dist;
-            move_value = -dist;
-        }
-        
-        for(auto& enemy : gs.enemies) {
-            enemy.sprite.move(sf::Vector2f(move_value, 0.0));
-            enemy.animate();
-        }
-        gs.anim_clock.restart();
     } 
-    
+
 }
 
 
