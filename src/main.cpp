@@ -39,8 +39,7 @@ struct Enemy {
     int frameWidth;
     int frameHeight;
     int currentFrame = 0;
-    sf::Clock anim_clock;
-    sf::Clock anim_clock;
+    sf::Clock cornometro_animaz;
     float sec_per_frame = 0.8;
 
     Enemy(const sf::Texture& texture, enemyType init_type) :
@@ -59,8 +58,7 @@ struct Enemy {
     }
 
     void animate() {
-        if(anim_clock.getElapsedTime().asSeconds() >= sec_per_frame) {
-        if(anim_clock.getElapsedTime().asSeconds() >= sec_per_frame) {
+        if(cornometro_animaz.getElapsedTime().asSeconds() >= sec_per_frame) {
             currentFrame = 1 - currentFrame; //alterna i frame
 
             //currentFrame = 0 ---> X = 0
@@ -68,10 +66,10 @@ struct Enemy {
             int rectX = currentFrame * frameWidth;
             sprite.setTextureRect(sf::IntRect({rectX, 0}, {frameWidth, frameHeight})); //cambio sprite
 
-            anim_clock.restart();
-            anim_clock.restart();
+            cornometro_animaz.restart();
         }
     }
+
 };
 
 
@@ -105,7 +103,7 @@ struct State {
     sf::Clock move_clock; //per spostamento nemici
     bool right_dir = true; //direzione nemici, prima era sotto ma mi serve persistente
 
-    //caricamento texture e collegamento agli sprite 
+    //caricamento texture e collegamento agli sprite prima del corpo del costruttore
     State() :
         background(spacebackground_jpg, spacebackground_jpg_len),
         background_sprite(background),
@@ -114,11 +112,10 @@ struct State {
         player_sprite(player),
 		
 		bullet_texture(bullet_png, bullet_png_len),
-        
+
         enemy1_texture(enemy1_sheet_png, enemy1_sheet_png_len),
         enemy2_texture(enemy2_sheet_png, enemy2_sheet_png_len),
         enemy3_texture(enemy3_sheet_png, enemy3_sheet_png_len)
-
     {
         //creazione finestra
         sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
@@ -148,13 +145,13 @@ struct State {
         float distX = 300; //distanze tra nemici
         float distY = 200;
 
-        float gridWidth = (columns - 1) * distX; //dimensioni griglia (-1 perche per 10 spazi ci sono 9 nemici)
+        float gridWidth = (columns - 1) * distX; //dimensioni griglia
         float gridHeight = (rows - 1) * distY;
 
         float startX = (screenWidth - gridWidth) / 2; //posizionamento effettivo griglia
         float startY = screenHeight * 0.15;
         
-        for(int i = 0; i < rows; i++) { //con ij inizializzo le coordinate in vector monodimensionale, verranno poi salvate nello sprite
+        for(int i = 0; i < rows; i++) {
             for(int j = 0; j < columns; j++) {
                 float posX = startX + (j * distX);
                 float posY = startY + (i * distY);
@@ -178,13 +175,8 @@ struct State {
                 }
             }
         }
-
-        //var per spostamento nemici
-        float minX = 30;
-        float maxX = static_cast<float>(desktop.size.x) - 30.0;
         
     }
-
 };
 
 
@@ -275,7 +267,6 @@ void update(State& gs) {
             
         }
     } 
-
 }
 
 
@@ -288,12 +279,12 @@ void doGraphics(State &gs) {
     gs.window.draw(gs.background_sprite);
 
     //nemici
-	for(const auto& enemy : gs.enemies) {
+	for (const auto& enemy : gs.enemies) {
         gs.window.draw(enemy.sprite);
     }
 
 	//proiettili giocatore
-	for(const auto& bullet : gs.bullets) {
+	for (const auto& bullet : gs.bullets) {
         gs.window.draw(bullet.sprite);
     }
 
