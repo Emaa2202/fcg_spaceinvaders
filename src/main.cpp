@@ -232,7 +232,7 @@ void update(State& gs) {
     //spostamento nemici
     if(gs.move_clock.getElapsedTime().asSeconds() >= 1.0) {
         if(!gs.enemies.empty()) {
-            float dist = 100;
+            float dist = 50;
             bool edge = false;
 
             float minX = gs.enemies[0].sprite.getPosition().x; //trova estremi
@@ -245,13 +245,13 @@ void update(State& gs) {
             
             float windowWidth = static_cast<float>(gs.window.getSize().x);
             
-            if((maxX + dist >= windowWidth && gs.right_dir) || (minX - dist <= 0 && !gs.right_dir)) {
+            if((maxX + dist >= windowWidth - 170.0 && gs.right_dir) || (minX - dist <= 170.0 && !gs.right_dir)) {
                 edge = true;
             }
 
             if(edge) {
                 gs.right_dir = !gs.right_dir;
-                for (auto& enemy : gs.enemies) {
+                for(auto& enemy : gs.enemies) {
                     enemy.sprite.move(sf::Vector2f(0.0, 30.0)); //nemici scendono
                     enemy.animate(); //sprite animaz
                 }
@@ -264,7 +264,6 @@ void update(State& gs) {
                 }
             }
              gs.move_clock.restart();
-            
         }
     } 
 }
