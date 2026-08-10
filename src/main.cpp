@@ -1,7 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <algorithm> //per clamp che mi semplifica il movimento 
 #include <vector>
-#include "textures.hpp"
+#include "player.hpp"
 #include "enemy1.hpp"
 #include "enemy2.hpp"
 #include "enemy3.hpp"
