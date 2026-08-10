@@ -1,19 +1,42 @@
 #include <SFML/Graphics.hpp>
 #include <algorithm> //per clamp che mi semplifica il movimento 
 #include <vector>
+//per rand
+#include <ctime> 
+#include <cstdlib>
+
 #include "player.hpp"
 #include "enemy1.hpp"
 #include "enemy2.hpp"
 #include "enemy3.hpp"
+#include "enemyBullet.hpp"
 
-struct Bullet {
+struct playerBullet {
 	sf::Vector2f pos;
 	float speed;
 	sf::Sprite sprite;
 
-	Bullet(const sf::Texture& texture, sf::Vector2f pos_iniziale) :
+	playerBullet(const sf::Texture& texture, sf::Vector2f pos_iniziale) :
 		pos(pos_iniziale),
-		speed(15.0),
+		speed(45.0),
+		sprite(texture)
+	{
+		float centro_x = static_cast<float>(texture.getSize().x) / 2.0;
+        float centro_y = static_cast<float>(texture.getSize().y) / 2.0;
+        sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
+		
+		sprite.setPosition(pos);
+	}
+};
+
+struct enemyBullet {
+	sf::Vector2f pos;
+	float speed;
+	sf::Sprite sprite;
+
+	enemyBullet(const sf::Texture& texture, sf::Vector2f pos_iniziale) :
+		pos(pos_iniziale),
+		speed(45.0),
 		sprite(texture)
 	{
 		float centro_x = static_cast<float>(texture.getSize().x) / 2.0;
@@ -34,6 +57,7 @@ struct Enemy {
     enemyType type;
     sf::Sprite sprite;
     bool isAlive;
+    sf::Clock enemyBullet_clock; //spostato qui per farli sparare anche assieme 
 
     //animazione
     int frameWidth;
@@ -87,13 +111,13 @@ struct State {
     sf::Sprite player_sprite;
 	sf::Vector2f playerpos;
 
-	sf::Texture bullet_texture;
-	std::vector<Bullet> bullets;
-    sf::Clock bullet_clock; //serve per tenere traccia del cooldown
+	sf::Texture playerBullet_texture;
+	std::vector<playerBullet> playerBullets;
+    sf::Clock playerBullet_clock; //serve per tenere traccia del cooldown
 
     std::vector<Enemy> enemies;
-    int rows = 3;
-    int columns = 10;
+    int rows = 6;
+    int columns = 12;
     float distX = 300.0; //distanze tra un nemico e l altro
     float distY = 200.0;
     sf::Texture enemy1_texture;
@@ -102,6 +126,9 @@ struct State {
 
     sf::Clock move_clock; //per spostamento nemici
     bool right_dir = true; //direzione nemici, prima era sotto ma mi serve persistente
+
+    sf::Texture enemyBullet_texture;
+    std::vector<enemyBullet> enemyBullets;
     
     //posizionamento player
     void initPlayer() {
@@ -122,35 +149,36 @@ struct State {
         float screenWidth = static_cast<float>(sf::VideoMode::getDesktopMode().size.x);
         float screenHeight = static_cast<float>(sf::VideoMode::getDesktopMode().size.y);
 
-        float distX = 300; //distanze tra nemici
-        float distY = 200;
+        float distX = 250; //distanze tra nemici
+        float distY = 130;
 
         float gridWidth = (columns - 1) * distX; //dimensioni griglia
         float gridHeight = (rows - 1) * distY;
 
         float startX = (screenWidth - gridWidth) / 2; //posizionamento effettivo griglia
-        float startY = screenHeight * 0.15;
+        float startY = screenHeight * 0.07;
         
         for(int i = 0; i < rows; i++) {
             for(int j = 0; j < columns; j++) {
                 float posX = startX + (j * distX);
                 float posY = startY + (i * distY);
             
-                if(i == 2){
+                if(i == 4 ||i == 5){
                     Enemy en(enemy1_texture, Type1);
                     en.sprite.setPosition(sf::Vector2f(posX, posY));
-                    en.sprite.setScale(sf::Vector2f(0.8, 0.8));
+                    en.sprite.setScale(sf::Vector2f(0.6, 0.6));
                     enemies.push_back(en);
                 } 
-                else if(i == 1){
+                else if(i == 2 || i == 3){
                     Enemy en(enemy2_texture, Type2);
                     en.sprite.setPosition(sf::Vector2f(posX, posY));
-                    en.sprite.setScale(sf::Vector2f(1.2, 1.2));
+                    en.sprite.setScale(sf::Vector2f(1.0, 1.0));
                     enemies.push_back(en);
                 }
                 else {
                     Enemy en(enemy3_texture, Type3);
                     en.sprite.setPosition(sf::Vector2f(posX, posY));
+                    en.sprite.setScale(sf::Vector2f(0.8, 0.8));
                     enemies.push_back(en);
                 }
             }
@@ -166,12 +194,15 @@ struct State {
 		player(player_png, player_png_len),
         player_sprite(player),
 		
-		bullet_texture(bullet_png, bullet_png_len),
+		playerBullet_texture(playerBullet_png, playerBullet_png_len),
 
         enemy1_texture(enemy1_sheet_png, enemy1_sheet_png_len),
         enemy2_texture(enemy2_sheet_png, enemy2_sheet_png_len),
-        enemy3_texture(enemy3_sheet_png, enemy3_sheet_png_len)
-    {
+        enemy3_texture(enemy3_sheet_png, enemy3_sheet_png_len),
+
+        enemyBullet_texture(enemyBullet_png, enemyBullet_png_len)
+    
+    {   
         //creazione finestra
         sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
         window.create(sf::VideoMode({desktop.size.x, desktop.size.y}), "Space Invaders");
@@ -227,17 +258,17 @@ void updatePlayer(State&gs) {
 	gs.player_sprite.setPosition(gs.playerpos);
 }
 
-void updateBullets(State& gs) {
+void updateplayerBullets(State& gs) {
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Space)) {
-        if(gs.bullet_clock.getElapsedTime().asSeconds() >= 0.45) {
-            gs.bullets.push_back(Bullet(gs.bullet_texture, gs.playerpos));
-            gs.bullet_clock.restart();
+        if(gs.playerBullet_clock.getElapsedTime().asSeconds() >= 0.45) {
+            gs.playerBullets.push_back(playerBullet(gs.playerBullet_texture, gs.playerpos));
+            gs.playerBullet_clock.restart();
         }
     }   
     //scorrimento proiettili player
-    for(auto& bullet : gs.bullets) {
-        bullet.pos.y -= bullet.speed;        
-        bullet.sprite.setPosition(bullet.pos); 
+    for(auto& playerBullet : gs.playerBullets) {
+        playerBullet.pos.y -= playerBullet.speed;        
+        playerBullet.sprite.setPosition(playerBullet.pos); 
     }
 }
 
@@ -281,10 +312,47 @@ void updateEnemies(State& gs) {
     }     
 }
 
+
+//proiettili nemici
+void updateEnemyBullets(State& gs) { 
+    for(auto& enemy : gs.enemies) {
+        int shoot = rand() % 2;
+        switch(enemy.type) {
+            case Type1:
+                if(shoot == 1 && enemy.enemyBullet_clock.getElapsedTime().asSeconds() >= 1){ 
+                    gs.enemyBullets.push_back(enemyBullet(gs.enemyBullet_texture, enemy.sprite.getPosition()));
+                    enemy.enemyBullet_clock.restart();
+                }
+            break;
+
+            case Type2:
+                if(shoot == 1 && enemy.enemyBullet_clock.getElapsedTime().asSeconds() >= 0.75){ 
+                    gs.enemyBullets.push_back(enemyBullet(gs.enemyBullet_texture, enemy.sprite.getPosition()));
+                    enemy.enemyBullet_clock.restart();
+                }
+            break;
+
+            case Type3:
+                if(shoot == 1 && enemy.enemyBullet_clock.getElapsedTime().asSeconds() >= 0.5){ 
+                    gs.enemyBullets.push_back(enemyBullet(gs.enemyBullet_texture, enemy.sprite.getPosition()));
+                    enemy.enemyBullet_clock.restart();
+                }
+            break;
+        }
+    }
+
+    //scorrimento proiettili nemici
+    for(auto& enemyBullet : gs.enemyBullets) {
+        enemyBullet.pos.y += enemyBullet.speed;        
+        enemyBullet.sprite.setPosition(enemyBullet.pos); 
+    }
+}
+
 void update(State& gs) {
     updatePlayer(gs);
-    updateBullets(gs);
+    updateplayerBullets(gs);
     updateEnemies(gs);
+    updateEnemyBullets(gs);
 }
 
 
@@ -296,14 +364,19 @@ void doGraphics(State &gs) {
     gs.window.clear();
     gs.window.draw(gs.background_sprite);
 
+    //proiettili nemici
+	for (const auto& enemyBullet : gs.enemyBullets) {
+        gs.window.draw(enemyBullet.sprite);
+    }
+
     //nemici
 	for (const auto& enemy : gs.enemies) {
         gs.window.draw(enemy.sprite);
     }
 
 	//proiettili giocatore
-	for (const auto& bullet : gs.bullets) {
-        gs.window.draw(bullet.sprite);
+	for (const auto& playerBullet : gs.playerBullets) {
+        gs.window.draw(playerBullet.sprite);
     }
 
     //giocatore
@@ -318,7 +391,8 @@ void doGraphics(State &gs) {
 --------------*/
 int main() {
     State gs;
-    
+    srand(time(NULL));
+
     while (gs.window.isOpen()) {
         
         gs.window.handleEvents([&](const auto &event)
