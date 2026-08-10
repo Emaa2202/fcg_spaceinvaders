@@ -36,7 +36,7 @@ struct enemyBullet {
 
 	enemyBullet(const sf::Texture& texture, sf::Vector2f pos_iniziale) :
 		pos(pos_iniziale),
-		speed(45.0),
+		speed(20.0),
 		sprite(texture)
 	{
 		float centro_x = static_cast<float>(texture.getSize().x) / 2.0;
@@ -57,6 +57,7 @@ struct Enemy {
     enemyType type;
     sf::Sprite sprite;
     bool isAlive;
+    bool emptyFront; //llo uso per far sparare solo quelli davanti al giocatore
     sf::Clock enemyBullet_clock; //spostato qui per farli sparare anche assieme 
 
     //animazione
@@ -69,7 +70,8 @@ struct Enemy {
     Enemy(const sf::Texture& texture, enemyType init_type) :
         sprite(texture),
         type(init_type),
-        isAlive(true)
+        isAlive(true),
+        emptyFront(false)
     {
         frameWidth = texture.getSize().x / 2.0; //2 frame, dim divise per 2
         frameHeight = texture.getSize().y;
@@ -137,7 +139,7 @@ struct State {
         float player_centro_y = static_cast<float>(player.getSize().y) / 2.0;
         player_sprite.setOrigin(sf::Vector2f(player_centro_x, player_centro_y));
 
-        player_sprite.setScale(sf::Vector2f(0.5, 0.5));
+        player_sprite.setScale(sf::Vector2f(0.3, 0.4));
         player_sprite.setPosition(sf::Vector2f(static_cast<float>(sf::VideoMode::getDesktopMode().size.x) / 2.0, static_cast<float>(sf::VideoMode::getDesktopMode().size.y) * 0.8)); 
 
 		//posizione player
@@ -165,6 +167,7 @@ struct State {
             
                 if(i == 4 ||i == 5){
                     Enemy en(enemy1_texture, Type1);
+                    if(i == 5) en.emptyFront = true; //la prima fila spara da subito
                     en.sprite.setPosition(sf::Vector2f(posX, posY));
                     en.sprite.setScale(sf::Vector2f(0.6, 0.6));
                     enemies.push_back(en);
@@ -248,7 +251,7 @@ void updatePlayer(State&gs) {
 		gs.playerpos.x += speed;
 	}
 
-    float half_width = (gs.player.getSize().x * gs.player_sprite.getScale().x) / 2.0f; //calcolo larghezza/2 dello sprite per non farlo fuoriuscire
+    float half_width = (gs.player.getSize().x * gs.player_sprite.getScale().x) / 2.0f; //calcolo larghezza/2 dello sprite per non farlo fuoriuscire di bordi
 	float min_x = half_width; //mezzo sprite (sx)
     float max_x = static_cast<float>(gs.window.getSize().x) - half_width; //x schermo - mezzo sprite (dx)
 
@@ -316,28 +319,30 @@ void updateEnemies(State& gs) {
 //proiettili nemici
 void updateEnemyBullets(State& gs) { 
     for(auto& enemy : gs.enemies) {
-        int shoot = rand() % 2;
-        switch(enemy.type) {
-            case Type1:
-                if(shoot == 1 && enemy.enemyBullet_clock.getElapsedTime().asSeconds() >= 1){ 
-                    gs.enemyBullets.push_back(enemyBullet(gs.enemyBullet_texture, enemy.sprite.getPosition()));
-                    enemy.enemyBullet_clock.restart();
-                }
-            break;
+        int shoot = rand() % 100;
+        if(enemy.emptyFront) {
+            switch(enemy.type) {
+                case Type1:
+                    if(shoot < 2 && enemy.enemyBullet_clock.getElapsedTime().asSeconds() >= 2.8){ 
+                        gs.enemyBullets.push_back(enemyBullet(gs.enemyBullet_texture, enemy.sprite.getPosition()));
+                        enemy.enemyBullet_clock.restart();
+                    }
+                break;
 
-            case Type2:
-                if(shoot == 1 && enemy.enemyBullet_clock.getElapsedTime().asSeconds() >= 0.75){ 
-                    gs.enemyBullets.push_back(enemyBullet(gs.enemyBullet_texture, enemy.sprite.getPosition()));
-                    enemy.enemyBullet_clock.restart();
-                }
-            break;
+                case Type2:
+                    if(shoot < 2 && enemy.enemyBullet_clock.getElapsedTime().asSeconds() >= 0.75){ 
+                        gs.enemyBullets.push_back(enemyBullet(gs.enemyBullet_texture, enemy.sprite.getPosition()));
+                        enemy.enemyBullet_clock.restart();
+                    }
+                break;
 
-            case Type3:
-                if(shoot == 1 && enemy.enemyBullet_clock.getElapsedTime().asSeconds() >= 0.5){ 
-                    gs.enemyBullets.push_back(enemyBullet(gs.enemyBullet_texture, enemy.sprite.getPosition()));
-                    enemy.enemyBullet_clock.restart();
-                }
-            break;
+                case Type3:
+                    if(shoot < 2 && enemy.enemyBullet_clock.getElapsedTime().asSeconds() >= 0.5){ 
+                        gs.enemyBullets.push_back(enemyBullet(gs.enemyBullet_texture, enemy.sprite.getPosition()));
+                        enemy.enemyBullet_clock.restart();
+                    }
+                break;
+            }
         }
     }
 
