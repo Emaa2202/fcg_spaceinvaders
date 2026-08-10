@@ -102,45 +102,25 @@ struct State {
 
     sf::Clock move_clock; //per spostamento nemici
     bool right_dir = true; //direzione nemici, prima era sotto ma mi serve persistente
-
-    //caricamento texture e collegamento agli sprite prima del corpo del costruttore
-    State() :
-        background(spacebackground_jpg, spacebackground_jpg_len),
-        background_sprite(background),
-        
-		player(player_png, player_png_len),
-        player_sprite(player),
-		
-		bullet_texture(bullet_png, bullet_png_len),
-
-        enemy1_texture(enemy1_sheet_png, enemy1_sheet_png_len),
-        enemy2_texture(enemy2_sheet_png, enemy2_sheet_png_len),
-        enemy3_texture(enemy3_sheet_png, enemy3_sheet_png_len)
-    {
-        //creazione finestra
-        sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
-        window.create(sf::VideoMode({desktop.size.x, desktop.size.y}), "Space Invaders");
-        window.setFramerateLimit(60);
-        
-        //sfondo di dimensione dello schermo
-        double background_scale_x = (static_cast<float>(desktop.size.x) / background.getSize().x); 
-        double background_scale_y = (static_cast<float>(desktop.size.y) / background.getSize().y);
-        background_sprite.setScale(sf::Vector2f(background_scale_x, background_scale_y));
-
+    
+    //posizionamento player
+    void initPlayer() {
         //sposta origine di player al centro dello sprite
         float player_centro_x = static_cast<float>(player.getSize().x) / 2.0;
         float player_centro_y = static_cast<float>(player.getSize().y) / 2.0;
         player_sprite.setOrigin(sf::Vector2f(player_centro_x, player_centro_y));
 
         player_sprite.setScale(sf::Vector2f(0.5, 0.5));
-        player_sprite.setPosition(sf::Vector2f(static_cast<float>(desktop.size.x) / 2.0, static_cast<float>(desktop.size.y) * 0.8)); 
+        player_sprite.setPosition(sf::Vector2f(static_cast<float>(sf::VideoMode::getDesktopMode().size.x) / 2.0, static_cast<float>(sf::VideoMode::getDesktopMode().size.y) * 0.8)); 
 
 		//posizione player
 		playerpos = player_sprite.getPosition();
-
-        //posizione nemici
-        float screenWidth = static_cast<float>(desktop.size.x);
-        float screenHeight = static_cast<float>(desktop.size.y);
+    }
+    
+    //posizionamento nemici
+    void initEnemies() {
+        float screenWidth = static_cast<float>(sf::VideoMode::getDesktopMode().size.x);
+        float screenHeight = static_cast<float>(sf::VideoMode::getDesktopMode().size.y);
 
         float distX = 300; //distanze tra nemici
         float distY = 200;
@@ -175,6 +155,36 @@ struct State {
                 }
             }
         }
+    }
+
+    
+    State() :
+        //caricamento texture e collegamento agli sprite
+        background(spacebackground_jpg, spacebackground_jpg_len),
+        background_sprite(background),
+        
+		player(player_png, player_png_len),
+        player_sprite(player),
+		
+		bullet_texture(bullet_png, bullet_png_len),
+
+        enemy1_texture(enemy1_sheet_png, enemy1_sheet_png_len),
+        enemy2_texture(enemy2_sheet_png, enemy2_sheet_png_len),
+        enemy3_texture(enemy3_sheet_png, enemy3_sheet_png_len)
+    {
+        //creazione finestra
+        sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
+        window.create(sf::VideoMode({desktop.size.x, desktop.size.y}), "Space Invaders");
+        window.setFramerateLimit(60);
+        
+        //sfondo di dimensione dello schermo
+        double background_scale_x = (static_cast<float>(desktop.size.x) / background.getSize().x); 
+        double background_scale_y = (static_cast<float>(desktop.size.y) / background.getSize().y);
+        background_sprite.setScale(sf::Vector2f(background_scale_x, background_scale_y));
+
+        
+        initPlayer();
+        initEnemies();        
         
     }
 };
@@ -195,9 +205,9 @@ void handle(const T &, State &gs) { //eventi non gestiti esplicitamente
 
 
 /*-----------------------------
-------Logica base del gioco----
+-------------Update------------
 ------------------------------*/
-void update(State& gs) {
+void updatePlayer(State&gs) {
     int speed = 10; //controllando a ogni frame (non piu handle) va diminuita la velocita 
 
 	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Left)) { //isKeyPressed invece di keyPressed per controllo tempo reale, permette di muoversi e sparare insieme
@@ -215,21 +225,24 @@ void update(State& gs) {
     gs.playerpos.x = std::clamp(gs.playerpos.x, min_x, max_x);
 
 	gs.player_sprite.setPosition(gs.playerpos);
+}
 
-	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Space)) {
-	    if(gs.bullet_clock.getElapsedTime().asSeconds() >= 0.45) {
+void updateBullets(State& gs) {
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Space)) {
+        if(gs.bullet_clock.getElapsedTime().asSeconds() >= 0.45) {
             gs.bullets.push_back(Bullet(gs.bullet_texture, gs.playerpos));
             gs.bullet_clock.restart();
         }
-    }
-
+    }   
     //scorrimento proiettili player
     for(auto& bullet : gs.bullets) {
         bullet.pos.y -= bullet.speed;        
         bullet.sprite.setPosition(bullet.pos); 
     }
+}
 
-    //spostamento nemici
+//spostamento nemici
+void updateEnemies(State& gs) {
     if(gs.move_clock.getElapsedTime().asSeconds() >= 1.0) {
         if(!gs.enemies.empty()) {
             float dist = 50;
@@ -265,7 +278,13 @@ void update(State& gs) {
             }
              gs.move_clock.restart();
         }
-    } 
+    }     
+}
+
+void update(State& gs) {
+    updatePlayer(gs);
+    updateBullets(gs);
+    updateEnemies(gs);
 }
 
 
