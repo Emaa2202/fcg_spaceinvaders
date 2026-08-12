@@ -139,6 +139,8 @@ struct State {
     sf::Texture enemyBullet_texture;
     std::vector<enemyBullet> enemyBullets;
     
+    int playerLifes = 3;
+
     //posizionamento player
     void initPlayer() {
         //sposta origine di player al centro dello sprite
@@ -394,12 +396,33 @@ void updatePlayerBulletsCollisions(State& gs) {
 }
 
 
+//collisioni proiettili dei nemici
+void updateEnemyBulletsCollisions(State& gs) {
+    for(auto& enemyBullet : gs.enemyBullets) {
+        sf::FloatRect enBulletsBounds = enemyBullet.sprite.getGlobalBounds();
+        sf::FloatRect playerBounds = gs.player_sprite.getGlobalBounds();
+        
+        if(enBulletsBounds.findIntersection(playerBounds).has_value()) {
+            gs.playerLifes--;
+            enemyBullet.pos.y = -500;
+        }
+    }
+
+    for(int i = 0; i <gs.enemyBullets.size(); i++) {
+        if(gs.enemyBullets[i].pos.y < 0.0) gs.enemyBullets.erase(gs.enemyBullets.begin() + i);
+    }
+
+    if(gs.playerLifes == 0) gs.window.close();
+}
+
+
 void update(State& gs) {
     updatePlayer(gs);
     updateplayerBullets(gs);
     updateEnemies(gs);
     updateEnemyBullets(gs);
     updatePlayerBulletsCollisions(gs);
+    updateEnemyBulletsCollisions(gs);
 }
 
 
