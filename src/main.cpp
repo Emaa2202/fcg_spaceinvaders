@@ -57,8 +57,8 @@ struct Enemy {
     enemyType type;
     sf::Sprite sprite;
     bool isAlive;
-    bool emptyFront; //llo uso per far sparare solo quelli davanti al giocatore
     sf::Clock enemyBullet_clock; //spostato qui per farli sparare anche assieme 
+    int col; //colonna per capire se puo sparare
 
     //animazione
     float frameWidth;
@@ -70,8 +70,7 @@ struct Enemy {
     Enemy(const sf::Texture& texture, enemyType init_type) :
         sprite(texture),
         type(init_type),
-        isAlive(true),
-        emptyFront(false)
+        isAlive(true)
     {
         frameWidth = texture.getSize().x / 2.0; //2 frame, dim divise per 2
         frameHeight = texture.getSize().y;
@@ -94,6 +93,16 @@ struct Enemy {
 
             cornometro_animaz.restart();
         }
+    }
+
+    bool isFrontEnemy(const Enemy target, const std::vector<Enemy>& enemies) {
+        float targetY = target.sprite.getPosition().y;
+
+        for(const auto& enemy : enemies) {
+            if(enemy.isAlive && enemy.col == target.col && enemy.sprite.getPosition().y > targetY) return false;
+        }
+
+        return true;
     }
 
 };
@@ -165,19 +174,21 @@ struct State {
             
                 if(i == 4 ||i == 5){
                     Enemy en(enemy1_texture, Type1);
-                    if(i == 5) en.emptyFront = true; //la prima fila spara da subito
+                    en.col = j;
                     en.sprite.setPosition(sf::Vector2f(posX, posY));
                     en.sprite.setScale(sf::Vector2f(0.6, 0.6));
                     enemies.push_back(en);
                 } 
                 else if(i == 2 || i == 3){
                     Enemy en(enemy2_texture, Type2);
+                    en.col = j;
                     en.sprite.setPosition(sf::Vector2f(posX, posY));
                     en.sprite.setScale(sf::Vector2f(1.0, 1.0));
                     enemies.push_back(en);
                 }
                 else {
                     Enemy en(enemy3_texture, Type3);
+                    en.col = j;
                     en.sprite.setPosition(sf::Vector2f(posX, posY));
                     en.sprite.setScale(sf::Vector2f(0.8, 0.8));
                     enemies.push_back(en);
@@ -318,7 +329,7 @@ void updateEnemies(State& gs) {
 void updateEnemyBullets(State& gs) { 
     for(auto& enemy : gs.enemies) {
         int shoot = rand() % 100;
-        if(enemy.emptyFront) {
+        if(enemy.isFrontEnemy(enemy, gs.enemies)) {
             switch(enemy.type) {
                 case Type1:
                     if(shoot < 2 && enemy.enemyBullet_clock.getElapsedTime().asSeconds() >= 2.8){ 
@@ -363,6 +374,7 @@ void updatePlayerBulletsCollisions(State& gs) {
             
                 if(playerBulletBounds.findIntersection(enemyBounds).has_value()) {
                     enemy.isAlive = false;
+
                     playerBullet.pos.y = -500;
                     break;
                 }
@@ -372,19 +384,13 @@ void updatePlayerBulletsCollisions(State& gs) {
     
     }
     
-    gs.enemies.erase(
-        std::remove_if(gs.enemies.begin(), gs.enemies.end(), [](const Enemy& e) {
-            return !e.isAlive;
-        }),
-        gs.enemies.end()
-    );
+    for(int i = 0; i <gs.enemies.size(); i++) {
+        if(!gs.enemies[i].isAlive) gs.enemies.erase(gs.enemies.begin() + i);
+    }
 
-    gs.playerBullets.erase(
-        std::remove_if(gs.playerBullets.begin(), gs.playerBullets.end(), [](const playerBullet& b) {
-            return b.pos.y < 0;
-        }),
-        gs.playerBullets.end()
-    );
+    for(int i = 0; i <gs.playerBullets.size(); i++) {
+        if(gs.playerBullets[i].pos.y < 0.0) gs.playerBullets.erase(gs.playerBullets.begin() + i);
+    }
 }
 
 
