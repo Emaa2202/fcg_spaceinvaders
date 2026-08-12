@@ -61,8 +61,8 @@ struct Enemy {
     sf::Clock enemyBullet_clock; //spostato qui per farli sparare anche assieme 
 
     //animazione
-    int frameWidth;
-    int frameHeight;
+    float frameWidth;
+    float frameHeight;
     int currentFrame = 0;
     sf::Clock cornometro_animaz;
     float sec_per_frame = 0.8;
@@ -120,8 +120,6 @@ struct State {
     std::vector<Enemy> enemies;
     int rows = 6;
     int columns = 12;
-    float distX = 300.0; //distanze tra un nemico e l altro
-    float distY = 200.0;
     sf::Texture enemy1_texture;
     sf::Texture enemy3_texture;
     sf::Texture enemy2_texture;
@@ -353,11 +351,49 @@ void updateEnemyBullets(State& gs) {
     }
 }
 
+
+//collisioni proiettile giocatore
+void updatePlayerBulletsCollisions(State& gs) { 
+    for(auto& playerBullet : gs.playerBullets) {
+        sf::FloatRect playerBulletBounds = playerBullet.sprite.getGlobalBounds();
+    
+        for(auto& enemy : gs.enemies) {
+            if(enemy.isAlive) {
+                sf::FloatRect enemyBounds = enemy.sprite.getGlobalBounds();
+            
+                if(playerBulletBounds.findIntersection(enemyBounds).has_value()) {
+                    enemy.isAlive = false;
+                    playerBullet.pos.y = -500;
+                    break;
+                }
+            }
+            
+        }
+    
+    }
+    
+    gs.enemies.erase(
+        std::remove_if(gs.enemies.begin(), gs.enemies.end(), [](const Enemy& e) {
+            return !e.isAlive;
+        }),
+        gs.enemies.end()
+    );
+
+    gs.playerBullets.erase(
+        std::remove_if(gs.playerBullets.begin(), gs.playerBullets.end(), [](const playerBullet& b) {
+            return b.pos.y < 0;
+        }),
+        gs.playerBullets.end()
+    );
+}
+
+
 void update(State& gs) {
     updatePlayer(gs);
     updateplayerBullets(gs);
     updateEnemies(gs);
     updateEnemyBullets(gs);
+    updatePlayerBulletsCollisions(gs);
 }
 
 
