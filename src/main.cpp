@@ -332,21 +332,21 @@ void updateEnemyBullets(State& gs) {
         if(enemy.isFrontEnemy(enemy, gs.enemies)) {
             switch(enemy.type) {
                 case Type1:
-                    if(shoot < 2 && enemy.enemyBullet_clock.getElapsedTime().asSeconds() >= 2.8){ 
+                    if(shoot < 1 && enemy.enemyBullet_clock.getElapsedTime().asSeconds() >= 3.0){ 
                         gs.enemyBullets.push_back(enemyBullet(gs.enemyBullet_texture, enemy.sprite.getPosition()));
                         enemy.enemyBullet_clock.restart();
                     }
                 break;
 
                 case Type2:
-                    if(shoot < 2 && enemy.enemyBullet_clock.getElapsedTime().asSeconds() >= 0.75){ 
+                    if(shoot < 1 && enemy.enemyBullet_clock.getElapsedTime().asSeconds() >= 1.5){ 
                         gs.enemyBullets.push_back(enemyBullet(gs.enemyBullet_texture, enemy.sprite.getPosition()));
                         enemy.enemyBullet_clock.restart();
                     }
                 break;
 
                 case Type3:
-                    if(shoot < 2 && enemy.enemyBullet_clock.getElapsedTime().asSeconds() >= 0.5){ 
+                    if(shoot < 1 && enemy.enemyBullet_clock.getElapsedTime().asSeconds() >= 0.25){ 
                         gs.enemyBullets.push_back(enemyBullet(gs.enemyBullet_texture, enemy.sprite.getPosition()));
                         enemy.enemyBullet_clock.restart();
                     }
