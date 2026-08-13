@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm> //per clamp che mi semplifica il movimento 
 #include <vector>
+#include <string>
 //per rand
 #include <ctime> 
 #include <cstdlib>
@@ -12,6 +13,30 @@
 #include "enemy3.hpp"
 #include "enemyBullet.hpp"
 #include "explosion.hpp"
+#include "font.hpp"
+
+struct HUD {
+    sf::Font font;
+    sf::Text livesText;
+
+    HUD() : livesText(font) {
+        font.openFromMemory(font_ttf, font_ttf_len);
+        
+        livesText.setString("Vite: 3");
+        livesText.setCharacterSize(64);
+        livesText.setFillColor(sf::Color::White);
+        livesText.setPosition(sf::Vector2f(50.0, sf::VideoMode::getDesktopMode().size.y-220));
+    }
+
+    // Aggiorna il testo con le vite attuali
+    void update(int playerLifes) {
+        livesText.setString("Vite: " + std::to_string(playerLifes));
+    }
+
+    void draw(sf::RenderWindow& window) const {
+        window.draw(livesText);
+    }
+};
 
 
 struct Explosion {
@@ -165,6 +190,8 @@ struct State {
 
     bool gameOver = false;
 
+    HUD hud;
+
     //posizionamento player
     void initPlayer() {
         //sposta origine di player al centro dello sprite
@@ -248,13 +275,12 @@ struct State {
         sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
         window.create(sf::VideoMode({desktop.size.x, desktop.size.y}), "Space Invaders");
         window.setFramerateLimit(60);
-        
+
         //sfondo di dimensione dello schermo
         double background_scale_x = (static_cast<float>(desktop.size.x) / background.getSize().x); 
         double background_scale_y = (static_cast<float>(desktop.size.y) / background.getSize().y);
         background_sprite.setScale(sf::Vector2f(background_scale_x, background_scale_y));
 
-        
         initPlayer();
         initEnemies();        
         
@@ -305,7 +331,7 @@ void updatePlayer(State&gs) {
 		gs.playerpos.x += speed;
 	}
 
-    float half_width = (gs.player.getSize().x * gs.player_sprite.getScale().x) / 2.0f; //calcolo larghezza/2 dello sprite per non farlo fuoriuscire di bordi
+    float half_width = (gs.player.getSize().x * gs.player_sprite.getScale().x) / 2.0; //calcolo larghezza/2 dello sprite per non farlo fuoriuscire di bordi
 	float min_x = half_width; //mezzo sprite (sx)
     float max_x = static_cast<float>(gs.window.getSize().x) - half_width; //x schermo - mezzo sprite (dx)
 
@@ -443,7 +469,7 @@ void updatePlayerBulletsCollisions(State& gs) {
     }
 
     for(int i = gs.explosions.size()-1; i >= 0; i--) {
-        if(gs.explosions[i].clock.getElapsedTime().asSeconds() >= 0.2f) {
+        if(gs.explosions[i].clock.getElapsedTime().asSeconds() >= 0.2) {
             gs.explosions.erase(gs.explosions.begin() + i);
         }
     }
@@ -473,7 +499,7 @@ void updateEnemyBulletsCollisions(State& gs) {
     }
 
     for(int i = gs.explosions.size()-1; i >= 0; i--) {
-        if(gs.explosions[i].clock.getElapsedTime().asSeconds() >= 0.2f) { //dopo un po viene tolta
+        if(gs.explosions[i].clock.getElapsedTime().asSeconds() >= 0.2) { //dopo un po viene tolta
             gs.explosions.erase(gs.explosions.begin() + i);
         }
     }
@@ -482,12 +508,12 @@ void updateEnemyBulletsCollisions(State& gs) {
 
 void updateGameOver(State& gs) {
     if(gs.playerLifes == 0){
-        
         //via effetto esplosione e proiettili
         gs.explosions.clear();
         gs.enemyBullets.clear();
         gs.playerBullets.clear();
 
+        
         gs.gameOver = true;
     }
 }
@@ -505,6 +531,7 @@ void update(State& gs) {
     updatePlayerBulletsCollisions(gs);
     updateEnemyBulletsCollisions(gs);
     updateGameOver(gs);
+    gs.hud.update(gs.playerLifes);
 }
 
 
@@ -515,6 +542,7 @@ void doGraphics(State &gs) {
     //sfondo
     gs.window.clear();
     gs.window.draw(gs.background_sprite);
+    
     if(gs.gameOver) {
 
     }
@@ -542,6 +570,7 @@ void doGraphics(State &gs) {
             gs.window.draw(exp.sprite);
         }
 
+        gs.hud.draw(gs.window);
     }
     gs.window.display();
 }
