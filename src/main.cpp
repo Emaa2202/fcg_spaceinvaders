@@ -274,6 +274,23 @@ void handle(const T &, State &gs) { //eventi non gestiti esplicitamente
     
 }
 
+//resetta tutto e riporta gameOver a false, facendo ripartire l update
+void handle(const sf::Event::KeyPressed &event, State &gs) {
+    if (gs.gameOver && sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Enter)) {
+        
+        gs.gameOver = false;
+        gs.playerLifes = 3;
+        
+        gs.playerBullets.clear();
+        gs.enemyBullets.clear();
+        gs.enemies.clear();
+        gs.explosions.clear();
+        
+        gs.initPlayer();
+        gs.initEnemies();
+    }
+}
+
 
 /*-----------------------------
 -------------Update------------
@@ -336,7 +353,7 @@ void updateEnemies(State& gs) {
             if(edge) {
                 gs.right_dir = !gs.right_dir;
                 for(auto& enemy : gs.enemies) {
-                    enemy.sprite.move(sf::Vector2f(0.0, 30.0)); //nemici scendono
+                    enemy.sprite.move(sf::Vector2f(0.0, 50.0)); //nemici scendono
                     enemy.animate(); //sprite animaz
                 }
             }
@@ -417,15 +434,15 @@ void updatePlayerBulletsCollisions(State& gs) {
     
     }
     
-    for(int i = 0; i <gs.enemies.size(); i++) {
+    for(int i = gs.enemies.size()-1; i >= 0; i--) {
         if(!gs.enemies[i].isAlive) gs.enemies.erase(gs.enemies.begin() + i);
     }
 
-    for(int i = 0; i <gs.playerBullets.size(); i++) {
+    for(int i = gs.playerBullets.size() -1; i >= 0; i--) {
         if(gs.playerBullets[i].pos.y < 0.0) gs.playerBullets.erase(gs.playerBullets.begin() + i);
     }
 
-    for(int i = 0; i < gs.explosions.size(); i++) {
+    for(int i = gs.explosions.size()-1; i >= 0; i--) {
         if(gs.explosions[i].clock.getElapsedTime().asSeconds() >= 0.2f) {
             gs.explosions.erase(gs.explosions.begin() + i);
         }
@@ -451,11 +468,11 @@ void updateEnemyBulletsCollisions(State& gs) {
         }
     }
 
-    for(int i = 0; i <gs.enemyBullets.size(); i++) {
+    for(int i = gs.enemyBullets.size()-1; i >= 0; i--) { //messo indici al contrario perchè nell altro modo gli elem scalano di una pos
         if(gs.enemyBullets[i].pos.y < 0.0) gs.enemyBullets.erase(gs.enemyBullets.begin() + i);
     }
 
-    for(int i = 0; i < gs.explosions.size(); i++) {
+    for(int i = gs.explosions.size()-1; i >= 0; i--) {
         if(gs.explosions[i].clock.getElapsedTime().asSeconds() >= 0.2f) { //dopo un po viene tolta
             gs.explosions.erase(gs.explosions.begin() + i);
         }
@@ -463,8 +480,9 @@ void updateEnemyBulletsCollisions(State& gs) {
 }
 
 
-void checkGameOver(State& gs) {
+void updateGameOver(State& gs) {
     if(gs.playerLifes == 0){
+        
         //via effetto esplosione e proiettili
         gs.explosions.clear();
         gs.enemyBullets.clear();
@@ -486,7 +504,7 @@ void update(State& gs) {
     updateEnemyBullets(gs);
     updatePlayerBulletsCollisions(gs);
     updateEnemyBulletsCollisions(gs);
-    checkGameOver(gs);
+    updateGameOver(gs);
 }
 
 
@@ -497,30 +515,34 @@ void doGraphics(State &gs) {
     //sfondo
     gs.window.clear();
     gs.window.draw(gs.background_sprite);
+    if(gs.gameOver) {
 
-    //proiettili nemici
-	for (const auto& enemyBullet : gs.enemyBullets) {
-        gs.window.draw(enemyBullet.sprite);
     }
+    else {
+        //proiettili nemici
+	    for (const auto& enemyBullet : gs.enemyBullets) {
+            gs.window.draw(enemyBullet.sprite);
+        }
 
-    //nemici
-	for (const auto& enemy : gs.enemies) {
-        gs.window.draw(enemy.sprite);
+        //nemici
+	    for (const auto& enemy : gs.enemies) {
+            gs.window.draw(enemy.sprite);
+        }
+
+	    //proiettili giocatore
+	    for (const auto& playerBullet : gs.playerBullets) {
+            gs.window.draw(playerBullet.sprite);
+        }
+
+        //giocatore
+        gs.window.draw(gs.player_sprite);
+
+        //esplosioni
+        for (const auto& exp : gs.explosions) {
+            gs.window.draw(exp.sprite);
+        }
+
     }
-
-	//proiettili giocatore
-	for (const auto& playerBullet : gs.playerBullets) {
-        gs.window.draw(playerBullet.sprite);
-    }
-
-    //giocatore
-    gs.window.draw(gs.player_sprite);
-
-    //esplosioni
-    for (const auto& exp : gs.explosions) {
-        gs.window.draw(exp.sprite);
-    }
-
     gs.window.display();
 }
 
