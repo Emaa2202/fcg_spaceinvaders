@@ -5,11 +5,27 @@
 #include <ctime> 
 #include <cstdlib>
 
-#include "player.hpp"
+#include "player.hpp" //player e sfondo
 #include "enemy1.hpp"
 #include "enemy2.hpp"
 #include "enemy3.hpp"
 #include "enemyBullet.hpp"
+#include "explosion.hpp"
+
+
+struct Explosion {
+    sf::Sprite sprite;
+    sf::Clock clock; //per far durare l'espolosione
+
+    Explosion(const sf::Texture& texture) :
+		sprite(texture)
+	{
+		float centro_x = static_cast<float>(texture.getSize().x) / 2.0;
+        float centro_y = static_cast<float>(texture.getSize().y) / 2.0;
+        sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
+	}
+};
+
 
 struct playerBullet {
 	sf::Vector2f pos;
@@ -28,6 +44,7 @@ struct playerBullet {
 		sprite.setPosition(pos);
 	}
 };
+
 
 struct enemyBullet {
 	sf::Vector2f pos;
@@ -141,6 +158,10 @@ struct State {
     
     int playerLifes = 3;
 
+    sf::Texture explosion_texture;
+    sf::Sprite explosion_sprite;
+    std::vector<Explosion> explosions;
+
     //posizionamento player
     void initPlayer() {
         //sposta origine di player al centro dello sprite
@@ -214,7 +235,10 @@ struct State {
         enemy2_texture(enemy2_sheet_png, enemy2_sheet_png_len),
         enemy3_texture(enemy3_sheet_png, enemy3_sheet_png_len),
 
-        enemyBullet_texture(enemyBullet_png, enemyBullet_png_len)
+        enemyBullet_texture(enemyBullet_png, enemyBullet_png_len),
+        
+        explosion_texture(explosion_png, explosion_png_len),
+        explosion_sprite(explosion_texture)
     
     {   
         //creazione finestra
@@ -376,6 +400,11 @@ void updatePlayerBulletsCollisions(State& gs) {
             
                 if(playerBulletBounds.findIntersection(enemyBounds).has_value()) {
                     enemy.isAlive = false;
+                    
+                    Explosion exp(gs.explosion_texture);
+                    exp.sprite.setPosition(enemy.sprite.getPosition());
+                    exp.sprite.setScale(sf::Vector2f(0.5, 0.5));
+                    gs.explosions.push_back(exp);
 
                     playerBullet.pos.y = -500;
                     break;
@@ -393,6 +422,12 @@ void updatePlayerBulletsCollisions(State& gs) {
     for(int i = 0; i <gs.playerBullets.size(); i++) {
         if(gs.playerBullets[i].pos.y < 0.0) gs.playerBullets.erase(gs.playerBullets.begin() + i);
     }
+
+    for(int i = 0; i < gs.explosions.size(); i++) {
+        if(gs.explosions[i].clock.getElapsedTime().asSeconds() >= 0.2f) {
+            gs.explosions.erase(gs.explosions.begin() + i);
+        }
+    }
 }
 
 
@@ -404,12 +439,24 @@ void updateEnemyBulletsCollisions(State& gs) {
         
         if(enBulletsBounds.findIntersection(playerBounds).has_value()) {
             gs.playerLifes--;
+            
+            Explosion exp(gs.explosion_texture);
+            exp.sprite.setPosition(gs.player_sprite.getPosition());
+            exp.sprite.setScale(sf::Vector2f(0.5, 0.5));
+            gs.explosions.push_back(exp);
+            
             enemyBullet.pos.y = -500;
         }
     }
 
     for(int i = 0; i <gs.enemyBullets.size(); i++) {
         if(gs.enemyBullets[i].pos.y < 0.0) gs.enemyBullets.erase(gs.enemyBullets.begin() + i);
+    }
+
+    for(int i = 0; i < gs.explosions.size(); i++) {
+        if(gs.explosions[i].clock.getElapsedTime().asSeconds() >= 0.2f) { //dopo un po viene tolta
+            gs.explosions.erase(gs.explosions.begin() + i);
+        }
     }
 
     if(gs.playerLifes == 0) gs.window.close();
@@ -451,6 +498,11 @@ void doGraphics(State &gs) {
 
     //giocatore
     gs.window.draw(gs.player_sprite);
+
+    //esplosioni
+    for (const auto& exp : gs.explosions) {
+        gs.window.draw(exp.sprite);
+    }
 
     gs.window.display();
 }
