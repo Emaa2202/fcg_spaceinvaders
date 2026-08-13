@@ -1,4 +1,5 @@
 #include <SFML/Graphics.hpp>
+#include <iostream>
 #include <algorithm> //per clamp che mi semplifica il movimento 
 #include <vector>
 //per rand
@@ -162,6 +163,8 @@ struct State {
     sf::Sprite explosion_sprite;
     std::vector<Explosion> explosions;
 
+    bool gameOver = false;
+
     //posizionamento player
     void initPlayer() {
         //sposta origine di player al centro dello sprite
@@ -266,7 +269,6 @@ void handle(const sf::Event::Closed &, State &gs) {
     gs.window.close();
 }
 
-	
 template <typename T>
 void handle(const T &, State &gs) { //eventi non gestiti esplicitamente
     
@@ -314,7 +316,7 @@ void updateplayerBullets(State& gs) {
 void updateEnemies(State& gs) {
     if(gs.move_clock.getElapsedTime().asSeconds() >= 1.0) {
         if(!gs.enemies.empty()) {
-            float dist = 50;
+            float dist = 75;
             bool edge = false;
 
             float minX = gs.enemies[0].sprite.getPosition().x; //trova estremi
@@ -458,18 +460,33 @@ void updateEnemyBulletsCollisions(State& gs) {
             gs.explosions.erase(gs.explosions.begin() + i);
         }
     }
+}
 
-    if(gs.playerLifes == 0) gs.window.close();
+
+void checkGameOver(State& gs) {
+    if(gs.playerLifes == 0){
+        //via effetto esplosione e proiettili
+        gs.explosions.clear();
+        gs.enemyBullets.clear();
+        gs.playerBullets.clear();
+
+        gs.gameOver = true;
+    }
 }
 
 
 void update(State& gs) {
+    if(gs.gameOver) {
+        return;
+    }
+    
     updatePlayer(gs);
     updateplayerBullets(gs);
     updateEnemies(gs);
     updateEnemyBullets(gs);
     updatePlayerBulletsCollisions(gs);
     updateEnemyBulletsCollisions(gs);
+    checkGameOver(gs);
 }
 
 
