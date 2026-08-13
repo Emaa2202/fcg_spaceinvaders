@@ -28,7 +28,6 @@ struct HUD {
         livesText.setPosition(sf::Vector2f(50.0, sf::VideoMode::getDesktopMode().size.y-220));
     }
 
-    // Aggiorna il testo con le vite attuali
     void update(int playerLifes) {
         livesText.setString("Vite: " + std::to_string(playerLifes));
     }
