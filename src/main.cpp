@@ -15,17 +15,71 @@
 #include "explosion.hpp"
 #include "font.hpp"
 
-struct HUD {
+
+struct Start {
+    sf::Font font;
+    sf::Text title;
+    sf::Text caption;
+    sf::Clock effect_clock; //clock per effetto 
+
+    Start() :
+        title(font), 
+        caption(font)
+    {    
+        font.openFromMemory(font_ttf, font_ttf_len);
+
+        //titolo
+        title.setString("Space Invaders");
+        title.setCharacterSize(256);
+
+        sf::FloatRect bounds = title.getLocalBounds();
+        title.setOrigin(sf::Vector2f(bounds.size.x / 2, bounds.size.y / 2));
+
+        title.setFillColor(sf::Color::White);
+        title.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, (sf::VideoMode::getDesktopMode().size.y/ 2.0) * 0.5));
+
+        //mex di premere invio
+        caption.setString("Premi invio per giocare");
+        caption.setCharacterSize(64);
+
+        sf::FloatRect cbounds = caption.getLocalBounds();
+        caption.setOrigin(sf::Vector2f(cbounds.size.x / 2, cbounds.size.y / 2));
+
+        caption.setFillColor(sf::Color::White);
+        caption.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, (sf::VideoMode::getDesktopMode().size.y/ 2.0) * 0.8));
+
+    }
+
+    void updateCaption() {
+        if(static_cast<int>(effect_clock.getElapsedTime().asSeconds()) % 2 == 0) {
+            caption.setFillColor(sf::Color::Transparent);
+        }
+        else {
+            caption.setFillColor(sf::Color::White);
+        }   
+    }
+
+    void draw(sf::RenderWindow& window) const {
+        window.draw(title);
+        window.draw(caption);
+    }
+    
+};
+
+
+struct Lifes_ui {
     sf::Font font;
     sf::Text livesText;
 
-    HUD() : livesText(font) {
+    Lifes_ui() :
+        livesText(font) 
+    {    
         font.openFromMemory(font_ttf, font_ttf_len);
         
         livesText.setString("Vite: 3");
         livesText.setCharacterSize(64);
         livesText.setFillColor(sf::Color::White);
-        livesText.setPosition(sf::Vector2f(50.0, sf::VideoMode::getDesktopMode().size.y-220));
+        livesText.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x * 0.01, sf::VideoMode::getDesktopMode().size.y * 0.89));
     }
 
     void update(int playerLifes) {
@@ -188,8 +242,10 @@ struct State {
     std::vector<Explosion> explosions;
 
     bool gameOver = false;
+    bool startScreen = true;
 
-    HUD hud;
+    Lifes_ui lui;
+    Start start;
 
     //posizionamento player
     void initPlayer() {
@@ -301,7 +357,11 @@ void handle(const T &, State &gs) { //eventi non gestiti esplicitamente
 
 //resetta tutto e riporta gameOver a false, facendo ripartire l update
 void handle(const sf::Event::KeyPressed &event, State &gs) {
-    if (gs.gameOver && sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Enter)) {
+    if(gs.startScreen && event.code == sf::Keyboard::Key::Enter) { //inizia la partita
+        gs.startScreen = false;
+    }
+    
+    if (gs.gameOver && sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Enter)) { //riavvia
         
         gs.gameOver = false;
         gs.playerLifes = 3;
@@ -358,7 +418,7 @@ void updateplayerBullets(State& gs) {
 void updateEnemies(State& gs) {
     if(gs.move_clock.getElapsedTime().asSeconds() >= 1.0) {
         if(!gs.enemies.empty()) {
-            float dist = 75;
+            float dist = 60;
             bool edge = false;
 
             float minX = gs.enemies[0].sprite.getPosition().x; //trova estremi
@@ -519,7 +579,8 @@ void updateGameOver(State& gs) {
 
 
 void update(State& gs) {
-    if(gs.gameOver) {
+    if(gs.startScreen || gs.gameOver) {
+        gs.start.updateCaption();
         return;
     }
     
@@ -530,7 +591,7 @@ void update(State& gs) {
     updatePlayerBulletsCollisions(gs);
     updateEnemyBulletsCollisions(gs);
     updateGameOver(gs);
-    gs.hud.update(gs.playerLifes);
+    gs.lui.update(gs.playerLifes);
 }
 
 
@@ -542,7 +603,10 @@ void doGraphics(State &gs) {
     gs.window.clear();
     gs.window.draw(gs.background_sprite);
     
-    if(gs.gameOver) {
+    if(gs.startScreen) {
+        gs.start.draw(gs.window);
+    }
+    else if(gs.gameOver) {
 
     }
     else {
@@ -569,7 +633,7 @@ void doGraphics(State &gs) {
             gs.window.draw(exp.sprite);
         }
 
-        gs.hud.draw(gs.window);
+        gs.lui.draw(gs.window);
     }
     gs.window.display();
 }
