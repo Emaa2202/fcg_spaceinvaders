@@ -653,6 +653,14 @@ void updateEnemyBulletsCollisions(State& gs) {
 
 
 void updateGameOver(State& gs) {
+    //se i nemici si avvicinano troppo
+    if(!gs.enemies.empty()) {
+        for(auto& enemy : gs.enemies) {
+            float maxY = enemy.sprite.getPosition().y;
+            if(maxY > sf::VideoMode::getDesktopMode().size.y * 0.6) gs.gameOver = true;
+        }
+    }
+    
     if(gs.playerLifes < 0){
         //via effetto esplosione e proiettili
         gs.explosions.clear();
