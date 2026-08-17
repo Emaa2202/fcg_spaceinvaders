@@ -670,6 +670,21 @@ void updateGameOver(State& gs) {
     }
 }
 
+void updateLevel(State& gs) {
+    if(gs.enemies.empty()) {
+        gs.playerLifes++;
+        gs.initPlayer();
+        gs.initEnemies();
+
+        //pulisco tutto 
+        gs.playerBullets.clear();
+        gs.enemyBullets.clear();
+        gs.explosions.clear();
+        
+        //reimposta la dir nemici a destra
+        gs.right_dir = true;
+    }
+}
 
 void update(State& gs) {
     if(gs.startScreen) {
@@ -688,8 +703,9 @@ void update(State& gs) {
     updateEnemyBullets(gs);
     updatePlayerBulletsCollisions(gs);
     updateEnemyBulletsCollisions(gs);
-    updateGameOver(gs);
     gs.ui.update(gs.playerLifes, gs.playerScore);
+    updateLevel(gs);
+    updateGameOver(gs);
 }
 
 
