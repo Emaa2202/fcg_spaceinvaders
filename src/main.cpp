@@ -118,27 +118,38 @@ struct End {
 };
 
 
-struct Lifes_ui {
+struct Ui {
     sf::Font font;
     sf::Text livesText;
+    sf::Text scoreText;
 
-    Lifes_ui() :
-        livesText(font) 
+    Ui() :
+        livesText(font),
+        scoreText(font) 
     {    
         font.openFromMemory(font_ttf, font_ttf_len);
         
+        //vite
         livesText.setString("Vite: 3");
         livesText.setCharacterSize(64);
         livesText.setFillColor(sf::Color::White);
         livesText.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x * 0.01, sf::VideoMode::getDesktopMode().size.y * 0.89));
+
+        //punti
+        scoreText.setString("Punteggio: 0");
+        scoreText.setCharacterSize(64);
+        scoreText.setFillColor(sf::Color::White);
+        scoreText.setPosition(sf::Vector2f(livesText.getGlobalBounds().position.x + livesText.getGlobalBounds().size.x * 1.5, sf::VideoMode::getDesktopMode().size.y * 0.89));
     }
 
-    void update(int playerLifes) {
+    void update(int playerLifes, int playerScore) {
         livesText.setString("Vite: " + std::to_string(playerLifes));
+        scoreText.setString("Punteggio: " + std::to_string(playerScore));
     }
 
     void draw(sf::RenderWindow& window) const {
         window.draw(livesText);
+        window.draw(scoreText);
     }
 };
 
@@ -206,6 +217,7 @@ struct Enemy {
     bool isAlive;
     sf::Clock enemyBullet_clock; //spostato qui per farli sparare anche assieme 
     int col; //colonna per capire se puo sparare
+    int points;
 
     //animazione
     float frameWidth;
@@ -295,9 +307,11 @@ struct State {
     bool gameOver = false;
     bool startScreen = true;
 
-    Lifes_ui lui;
+    Ui ui;
     Start start;
     End end;
+
+    int playerScore = 0;
 
     //posizionamento player
     void initPlayer() {
@@ -334,6 +348,7 @@ struct State {
             
                 if(i == 4 ||i == 5){
                     Enemy en(enemy1_texture, Type1);
+                    en.points = 10;
                     en.col = j;
                     en.sprite.setPosition(sf::Vector2f(posX, posY));
                     en.sprite.setScale(sf::Vector2f(0.6, 0.6));
@@ -341,6 +356,7 @@ struct State {
                 } 
                 else if(i == 2 || i == 3){
                     Enemy en(enemy2_texture, Type2);
+                    en.points = 15;
                     en.col = j;
                     en.sprite.setPosition(sf::Vector2f(posX, posY));
                     en.sprite.setScale(sf::Vector2f(1.0, 1.0));
@@ -348,6 +364,7 @@ struct State {
                 }
                 else {
                     Enemy en(enemy3_texture, Type3);
+                    en.points = 20;
                     en.col = j;
                     en.sprite.setPosition(sf::Vector2f(posX, posY));
                     en.sprite.setScale(sf::Vector2f(0.8, 0.8));
@@ -411,10 +428,12 @@ void handle(const T &, State &gs) { //eventi non gestiti esplicitamente
 void handle(const sf::Event::KeyPressed &event, State &gs) {
     if(gs.startScreen && event.code == sf::Keyboard::Key::Enter) { //inizia la partita
         gs.startScreen = false;
+        gs.playerScore = 0;
     }
     
-    if (gs.gameOver && sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Enter)) { //riavvia
-        
+    if(gs.gameOver && sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Enter)) { //riavvia
+        gs.playerScore = 0;
+
         gs.gameOver = false;
         gs.playerLifes = 3;
         
@@ -556,7 +575,8 @@ void updatePlayerBulletsCollisions(State& gs) {
             
                 if(playerBulletBounds.findIntersection(enemyBounds).has_value()) {
                     enemy.isAlive = false;
-                    
+                    gs.playerScore += enemy.points;
+
                     Explosion exp(gs.explosion_texture);
                     exp.sprite.setPosition(enemy.sprite.getPosition());
                     exp.sprite.setScale(sf::Vector2f(0.5, 0.5));
@@ -645,7 +665,7 @@ void update(State& gs) {
     updatePlayerBulletsCollisions(gs);
     updateEnemyBulletsCollisions(gs);
     updateGameOver(gs);
-    gs.lui.update(gs.playerLifes);
+    gs.ui.update(gs.playerLifes, gs.playerScore);
 }
 
 
@@ -687,7 +707,7 @@ void doGraphics(State &gs) {
             gs.window.draw(exp.sprite);
         }
 
-        gs.lui.draw(gs.window);
+        gs.ui.draw(gs.window);
     }
     gs.window.display();
 }
