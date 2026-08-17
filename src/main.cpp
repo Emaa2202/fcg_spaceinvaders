@@ -67,6 +67,57 @@ struct Start {
 };
 
 
+struct End {
+    sf::Font font;
+    sf::Text title;
+    sf::Text caption;
+    sf::Clock effect_clock; //clock per effetto 
+
+    End() :
+        title(font), 
+        caption(font)
+    {    
+        font.openFromMemory(font_ttf, font_ttf_len);
+
+        //titolo
+        title.setString("Game Over!");
+        title.setCharacterSize(256);
+
+        sf::FloatRect bounds = title.getLocalBounds();
+        title.setOrigin(sf::Vector2f(bounds.size.x / 2, bounds.size.y / 2));
+
+        title.setFillColor(sf::Color::White);
+        title.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, (sf::VideoMode::getDesktopMode().size.y/ 2.0) * 0.5));
+
+        //mex di premere invio
+        caption.setString("Premi invio per giocare ancora");
+        caption.setCharacterSize(64);
+
+        sf::FloatRect cbounds = caption.getLocalBounds();
+        caption.setOrigin(sf::Vector2f(cbounds.size.x / 2, cbounds.size.y / 2));
+
+        caption.setFillColor(sf::Color::White);
+        caption.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, (sf::VideoMode::getDesktopMode().size.y/ 2.0) * 0.8));
+
+    }
+
+    void updateCaption() {
+        if(static_cast<int>(effect_clock.getElapsedTime().asSeconds()) % 2 == 0) {
+            caption.setFillColor(sf::Color::Transparent);
+        }
+        else {
+            caption.setFillColor(sf::Color::White);
+        }   
+    }
+
+    void draw(sf::RenderWindow& window) const {
+        window.draw(title);
+        window.draw(caption);
+    }
+    
+};
+
+
 struct Lifes_ui {
     sf::Font font;
     sf::Text livesText;
@@ -246,6 +297,7 @@ struct State {
 
     Lifes_ui lui;
     Start start;
+    End end;
 
     //posizionamento player
     void initPlayer() {
@@ -566,24 +618,26 @@ void updateEnemyBulletsCollisions(State& gs) {
 
 
 void updateGameOver(State& gs) {
-    if(gs.playerLifes == 0){
+    if(gs.playerLifes < 0){
         //via effetto esplosione e proiettili
         gs.explosions.clear();
         gs.enemyBullets.clear();
         gs.playerBullets.clear();
-
-        
         gs.gameOver = true;
     }
 }
 
 
 void update(State& gs) {
-    if(gs.startScreen || gs.gameOver) {
+    if(gs.startScreen) {
         gs.start.updateCaption();
         return;
     }
-    
+    else if(gs.gameOver) {
+        gs.end.updateCaption();
+        return;
+    }
+
     updatePlayer(gs);
     updateplayerBullets(gs);
     updateEnemies(gs);
@@ -607,7 +661,7 @@ void doGraphics(State &gs) {
         gs.start.draw(gs.window);
     }
     else if(gs.gameOver) {
-
+        gs.end.draw(gs.window);
     }
     else {
         //proiettili nemici
