@@ -71,11 +71,13 @@ struct End {
     sf::Font font;
     sf::Text title;
     sf::Text caption;
+    sf::Text finalScore;
     sf::Clock effect_clock; //clock per effetto 
 
     End() :
         title(font), 
-        caption(font)
+        caption(font),
+        finalScore(font)
     {    
         font.openFromMemory(font_ttf, font_ttf_len);
 
@@ -87,7 +89,7 @@ struct End {
         title.setOrigin(sf::Vector2f(bounds.size.x / 2, bounds.size.y / 2));
 
         title.setFillColor(sf::Color::White);
-        title.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, (sf::VideoMode::getDesktopMode().size.y/ 2.0) * 0.5));
+        title.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, (sf::VideoMode::getDesktopMode().size.y/ 2.0) * 0.3));
 
         //mex di premere invio
         caption.setString("Premi invio per giocare ancora");
@@ -97,8 +99,16 @@ struct End {
         caption.setOrigin(sf::Vector2f(cbounds.size.x / 2, cbounds.size.y / 2));
 
         caption.setFillColor(sf::Color::White);
-        caption.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, (sf::VideoMode::getDesktopMode().size.y/ 2.0) * 0.8));
+        caption.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, (sf::VideoMode::getDesktopMode().size.y/ 2.0) * 0.7));
 
+        //punti
+        finalScore.setString("Punteggio: 0");
+        finalScore.setCharacterSize(128);
+        finalScore.setFillColor(sf::Color::White);
+        
+        sf::FloatRect sbounds = finalScore.getLocalBounds();
+        finalScore.setOrigin(sf::Vector2f(sbounds.size.x / 2, sbounds.size.y / 2));
+        finalScore.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, (sf::VideoMode::getDesktopMode().size.y/ 2.0) * 0.5));
     }
 
     void updateCaption() {
@@ -110,9 +120,14 @@ struct End {
         }   
     }
 
+    void update(int playerScore) {
+        finalScore.setString("Punteggio: " + std::to_string(playerScore));
+    }
+
     void draw(sf::RenderWindow& window) const {
         window.draw(title);
         window.draw(caption);
+        window.draw(finalScore);
     }
     
 };
@@ -654,6 +669,7 @@ void update(State& gs) {
         return;
     }
     else if(gs.gameOver) {
+        gs.end.update(gs.playerScore);
         gs.end.updateCaption();
         return;
     }
