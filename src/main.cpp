@@ -137,10 +137,12 @@ struct Ui {
     sf::Font font;
     sf::Text livesText;
     sf::Text scoreText;
+    sf::Text levelText;
 
     Ui() :
         livesText(font),
-        scoreText(font) 
+        scoreText(font),
+        levelText(font) 
     {    
         font.openFromMemory(font_ttf, font_ttf_len);
         
@@ -155,16 +157,24 @@ struct Ui {
         scoreText.setCharacterSize(64);
         scoreText.setFillColor(sf::Color::White);
         scoreText.setPosition(sf::Vector2f(livesText.getGlobalBounds().position.x + livesText.getGlobalBounds().size.x * 1.5, sf::VideoMode::getDesktopMode().size.y * 0.89));
+    
+        //contatore livelli
+        levelText.setString("Livello: 1");
+        levelText.setCharacterSize(64);
+        levelText.setFillColor(sf::Color::White);
+        levelText.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x * 0.85, sf::VideoMode::getDesktopMode().size.y * 0.89));
     }
 
-    void update(int playerLifes, int playerScore) {
+    void update(int playerLifes, int playerScore, int level) {
         livesText.setString("Vite: " + std::to_string(playerLifes));
         scoreText.setString("Punteggio: " + std::to_string(playerScore));
+        levelText.setString("Livello: " + std::to_string(level));
     }
 
     void draw(sf::RenderWindow& window) const {
         window.draw(livesText);
         window.draw(scoreText);
+        window.draw(levelText);
     }
 };
 
@@ -330,6 +340,11 @@ struct State {
 
     sf::Clock gameoverTransition_clock; //per non far apparire la schermata gameover instantaneamente
     bool gameoverTransition = false;
+
+    sf::Clock nextLevelTransition_clock; 
+    bool nextLevelTransition = false;
+
+    int level = 1; //contatore livelli
 
     //posizionamento player
     void initPlayer() {
@@ -680,18 +695,9 @@ void updateGameOver(State& gs) {
 }
 
 void updateLevel(State& gs) {
-    if(gs.enemies.empty()) {
-        gs.playerLifes++;
-        gs.initPlayer();
-        gs.initEnemies();
-
-        //pulisco tutto 
-        gs.playerBullets.clear();
-        gs.enemyBullets.clear();
-        gs.explosions.clear();
-        
-        //reimposta la dir nemici a destra
-        gs.right_dir = true;
+    if(gs.enemies.empty() && !gs.nextLevelTransition) {
+        gs.nextLevelTransition = true;
+        gs.nextLevelTransition_clock.restart(); 
     }
 }
 
@@ -718,14 +724,36 @@ void update(State& gs) {
         return; 
     }
 
+    if(gs.nextLevelTransition) {
+        if(gs.nextLevelTransition_clock.getElapsedTime().asSeconds() >= 0.5) {
+            gs.nextLevelTransition = false;
+
+            //pulisco tutto, aggiungo 1 vita e incremento contatore livelli
+            gs.level++;
+            gs.playerLifes++;
+            gs.initPlayer();
+            gs.initEnemies();
+ 
+            gs.playerBullets.clear();
+            gs.enemyBullets.clear();
+            gs.explosions.clear();
+            
+            //reimposta la dir nemici a destra
+            gs.right_dir = true;
+
+            gs.nextLevelTransition_clock.restart();
+        }
+        return;
+    }
+
     updatePlayer(gs);
     updateplayerBullets(gs);
     updateEnemies(gs);
     updateEnemyBullets(gs);
     updatePlayerBulletsCollisions(gs);
     updateEnemyBulletsCollisions(gs);
-    if(gs.playerLifes < 0) gs.ui.update(0, gs.playerScore); //per nascondere il -1 vite al gameOver
-    else gs.ui.update(gs.playerLifes, gs.playerScore);
+    if(gs.playerLifes < 0) gs.ui.update(0, gs.playerScore, gs.level); //per nascondere il -1 vite al gameOver
+    else gs.ui.update(gs.playerLifes, gs.playerScore, gs.level);
     updateLevel(gs);
     updateGameOver(gs);
 }
