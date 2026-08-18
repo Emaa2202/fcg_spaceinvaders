@@ -319,7 +319,7 @@ struct State {
     sf::Sprite explosion_sprite;
     std::vector<Explosion> explosions;
 
-    bool gameOver = false;
+    bool gameOver = false; //per far apparirre la schermata gameover
     bool startScreen = true;
 
     Ui ui;
@@ -327,6 +327,9 @@ struct State {
     End end;
 
     int playerScore = 0;
+
+    sf::Clock gameoverTransition_clock; //per non far apparire la schermata gameover instantaneamente
+    bool gameoverTransition = false;
 
     //posizionamento player
     void initPlayer() {
@@ -452,6 +455,8 @@ void handle(const sf::Event::KeyPressed &event, State &gs) {
         gs.gameOver = false;
         gs.playerLifes = 3;
         
+        gs.gameoverTransition = false;
+
         gs.playerBullets.clear();
         gs.enemyBullets.clear();
         gs.enemies.clear();
@@ -653,21 +658,25 @@ void updateEnemyBulletsCollisions(State& gs) {
 
 
 void updateGameOver(State& gs) {
+    bool lost = false;
+    
     //se i nemici si avvicinano troppo
     if(!gs.enemies.empty()) {
         for(auto& enemy : gs.enemies) {
             float maxY = enemy.sprite.getPosition().y;
-            if(maxY > sf::VideoMode::getDesktopMode().size.y * 0.6) gs.gameOver = true;
+            if(maxY > sf::VideoMode::getDesktopMode().size.y * 0.6) lost = true;
         }
     }
-    
+
     if(gs.playerLifes < 0){
-        //via effetto esplosione e proiettili
-        gs.explosions.clear();
-        gs.enemyBullets.clear();
-        gs.playerBullets.clear();
-        gs.gameOver = true;
+        lost = true;
     }
+
+    if(lost) {
+        gs.gameoverTransition = true;
+        gs.gameoverTransition_clock.restart(); 
+    }
+
 }
 
 void updateLevel(State& gs) {
@@ -697,13 +706,26 @@ void update(State& gs) {
         return;
     }
 
+    if(gs.gameoverTransition) {
+        if(gs.gameoverTransition_clock.getElapsedTime().asSeconds() >= 0.5) {
+            gs.gameoverTransition = false; //tolgo la transizione, metto true a gameOver e appare la schermata
+            gs.gameOver = true; 
+            
+            gs.explosions.clear();
+            gs.enemyBullets.clear();
+            gs.playerBullets.clear();
+        }
+        return; 
+    }
+
     updatePlayer(gs);
     updateplayerBullets(gs);
     updateEnemies(gs);
     updateEnemyBullets(gs);
     updatePlayerBulletsCollisions(gs);
     updateEnemyBulletsCollisions(gs);
-    gs.ui.update(gs.playerLifes, gs.playerScore);
+    if(gs.playerLifes < 0) gs.ui.update(0, gs.playerScore); //per nascondere il -1 vite al gameOver
+    else gs.ui.update(gs.playerLifes, gs.playerScore);
     updateLevel(gs);
     updateGameOver(gs);
 }
