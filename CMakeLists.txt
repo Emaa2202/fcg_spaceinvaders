@@ -23,6 +23,8 @@ target_compile_features(SpaceInvaders PRIVATE cxx_std_17)
 
 #Librerie opzionali con target_link_libraries(main PRIVATE SFML::Graphics SFML::Audio SFML::Network)
 target_link_libraries(SpaceInvaders PRIVATE SFML::Graphics)
+target_link_libraries(SpaceInvaders PRIVATE SFML::Audio)
+
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT SpaceInvaders)
 

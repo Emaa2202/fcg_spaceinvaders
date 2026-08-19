@@ -10,6 +10,7 @@ Questo file contiene:
 #include <cstdlib>
 
 #include "state.hpp"
+
 #include "graphics/player.hpp" //player + sfondo
 #include "graphics/enemy1.hpp"
 #include "graphics/enemy2.hpp"
@@ -18,6 +19,10 @@ Questo file contiene:
 #include "graphics/explosion.hpp"
 
 #include "graphics/font.hpp"
+
+#include "sounds/playerBulletSound.hpp"
+#include "sounds/playerExplosion.hpp"
+
 
 /*-----------------------------
 -----------Costruttori---------
@@ -124,6 +129,8 @@ State::State() :
         player_texture(player_png, player_png_len),
         player(player_texture),
         playerBullet_texture(playerBullet_png, playerBullet_png_len),
+        playerBullets_buffer(playerBullet_mp3, playerBullet_mp3_len),
+        playerBullets_sound(playerBullets_buffer),
 
         enemy1_texture(enemy1_sheet_png, enemy1_sheet_png_len),
         enemy2_texture(enemy2_sheet_png, enemy2_sheet_png_len),
@@ -132,9 +139,15 @@ State::State() :
         enemyBullet_texture(enemyBullet_png, enemyBullet_png_len),
         
         explosion_texture(explosion_png, explosion_png_len),
-        explosion_sprite(explosion_texture)
+        explosion_sprite(explosion_texture),
+        playerExplosion_buffer(playerExplosion_mp3, playerExplosion_mp3_len),
+        playerExplosion_sound(playerExplosion_buffer)
     
     {   
+        //gestioni audio
+        playerBullets_sound.setVolume(15.0);
+        playerExplosion_sound.setVolume(20.0);
+
         //creazione finestra
         sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
         window.create(sf::VideoMode({desktop.size.x, desktop.size.y}), "Space Invaders");
@@ -188,10 +201,10 @@ void State::initEnemies() {
 void updatePlayer(State&gs) {
     int speed = 10; //controllando a ogni frame (non piu handle) va diminuita la velocita 
 
-	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Left)) { //isKeyPressed invece di keyPressed per controllo tempo reale, permette di muoversi e sparare insieme
+	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A)) { //isKeyPressed invece di keyPressed per controllo tempo reale, permette di muoversi e sparare insieme
 	    gs.player.sprite.move(sf::Vector2f(-speed, 0));
 	}
-	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Right)) {
+	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D)) {
 		gs.player.sprite.move(sf::Vector2f(speed, 0));
 	}
 
@@ -208,6 +221,9 @@ void updateplayerBullets(State& gs) {
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Space)) {
         if(gs.player.canShoot()) {
             gs.playerBullets.push_back(playerBullet(gs.playerBullet_texture, gs.player.sprite.getPosition()));
+            
+            gs.playerBullets_sound.play();
+
             gs.player.cooldown.restart();
         }
     }   
@@ -347,12 +363,13 @@ void updateEnemyBulletsCollisions(State& gs) {
         
         if(enBulletsBounds.findIntersection(playerBounds).has_value()) {
             gs.player.lifes--;
+            gs.playerExplosion_sound.play();
             
             Explosion exp(gs.explosion_texture);
             exp.sprite.setPosition(gs.player.sprite.getPosition());
             exp.sprite.setScale(sf::Vector2f(0.5, 0.5));
             gs.explosions.push_back(exp);
-            
+
             enemyBullet.pos.y = -500;
         }
     }

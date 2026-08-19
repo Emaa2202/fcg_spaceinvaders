@@ -6,9 +6,11 @@ Questo file contiene:
 ----------------------------------------
 --------------------------------------*/
 #include <SFML/Graphics.hpp>
+#include<SFML/Audio.hpp>
 
 #include "interfaces.hpp"
 #include "entities.hpp"
+
 
 struct State {
     sf::RenderWindow window;
@@ -21,6 +23,8 @@ struct State {
 
 	std::vector<playerBullet> playerBullets;
     sf::Texture playerBullet_texture;
+    sf::SoundBuffer playerBullets_buffer;
+    sf::Sound playerBullets_sound; 
 
     std::vector<Enemy> enemies;
     int rows = 6;
@@ -38,6 +42,8 @@ struct State {
     sf::Texture explosion_texture;
     sf::Sprite explosion_sprite;
     std::vector<Explosion> explosions;
+    sf::SoundBuffer playerExplosion_buffer;
+    sf::Sound playerExplosion_sound;
 
     bool gameOver = false; //per far apparirre la schermata gameover
     bool startScreen = true;
