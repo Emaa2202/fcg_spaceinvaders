@@ -13,6 +13,9 @@ Questo file contiene:
 
 
 struct State {
+    std::string audioDir;
+    sf::Music soundtrack;
+
     sf::RenderWindow window;
 
     sf::Texture background;
@@ -60,6 +63,7 @@ struct State {
 
     State();
     void initEnemies();
+    void playMusic(const std::string& trackName);
 };
 
 void updatePlayer(State& gs);

@@ -28,8 +28,9 @@ void handle(const sf::Event::KeyPressed &event, State &gs) {
 
         gs.gameOver = false;
         
-        
         gs.gameoverTransition = false;
+
+        gs.playMusic("soundtrack.mp3"); //riproduce audio con var soundtrack
 
         gs.playerBullets.clear();
         gs.enemyBullets.clear();
@@ -50,6 +51,7 @@ void update(State& gs) {
         return;
     }
     else if(gs.gameOver) {
+        gs.soundtrack.stop();
         gs.end.update(gs.player.score);
         gs.end.updateCaption();
         return;
@@ -149,12 +151,16 @@ void doGraphics(State &gs) {
 /*--------------
 ---Main loop----
 --------------*/
-int main() {
+int main(int argc, char* argv[]) {
+    std::string audioDir = "./media/audio"; //se non scrivo da terminale, questo è default
+    if (argc >= 2) audioDir = argv[1];
+    
     State gs;
     srand(time(NULL));
+    gs.audioDir = audioDir; //passo a state la cartella per cercare audio e usare la funzione playMusic
 
+    gs.playMusic("soundtrack.mp3"); //riproduce audio con var soundtrack
     while (gs.window.isOpen()) {
-        
         gs.window.handleEvents([&](const auto &event)
                                { handle(event, gs); });
 

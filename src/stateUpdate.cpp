@@ -5,6 +5,7 @@ Questo file contiene:
     Implementazione delle funzioni update
 ----------------------------------------
 --------------------------------------*/
+#include <SFML/Audio.hpp>
 #include <algorithm> //per clamp che mi semplifica il movimento 
 #include <ctime> //per rand
 #include <cstdlib>
@@ -145,8 +146,8 @@ State::State() :
     
     {   
         //gestioni audio
-        playerBullets_sound.setVolume(15.0);
-        playerExplosion_sound.setVolume(20.0);
+        playerBullets_sound.setVolume(50.0);
+        playerExplosion_sound.setVolume(100.0);
 
         //creazione finestra
         sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
@@ -192,6 +193,14 @@ void State::initEnemies() {
             }
         }
     }
+}
+void State::playMusic(const std::string& trackName) { //utilizzo playMusic 1 volta nel main, 1 volta al restart e al gameover faccio soundtrack.stop()
+    std::string path = audioDir + "/" + trackName;
+    soundtrack.openFromFile(path);
+    soundtrack.stop(); //se c era qualcosa prima, lo ferma
+    soundtrack.setLooping(true);
+    soundtrack.setVolume(60.0);
+    soundtrack.play();
 }
 
 
