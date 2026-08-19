@@ -15,11 +15,14 @@ FetchContent_Declare(SFML
 FetchContent_MakeAvailable(SFML)
 
 #Eseguibile principale
-add_executable(main src/main.cpp)
-target_compile_features(main PRIVATE cxx_std_17)
+add_executable(SpaceInvaders
+    src/main.cpp
+    src/stateUpdate.cpp
+)
+target_compile_features(SpaceInvaders PRIVATE cxx_std_17)
 
 #Librerie opzionali con target_link_libraries(main PRIVATE SFML::Graphics SFML::Audio SFML::Network)
-target_link_libraries(main PRIVATE SFML::Graphics)
+target_link_libraries(SpaceInvaders PRIVATE SFML::Graphics)
 
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT main)
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT SpaceInvaders)
 
