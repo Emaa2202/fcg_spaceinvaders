@@ -176,7 +176,7 @@ void State::initEnemies() {
     
     float startX = (screenWidth - gridWidth) / 2; //posizionamento effettivo griglia
     float startY = screenHeight * 0.07;
-    
+     
     for(int i = 0; i < rows; i++) {
         for(int j = 0; j < columns; j++) {
             float posX = startX + (j * distX);
@@ -193,6 +193,8 @@ void State::initEnemies() {
             }
         }
     }
+
+    enemiesQuantity = enemies.size(); //inizializza contatore nemici
 }
 void State::playMusic(const std::string& trackName) { //utilizzo playMusic 1 volta nel main, 1 volta al restart e al gameover faccio soundtrack.stop()
     std::string path = audioDir + "/" + trackName;
@@ -210,10 +212,10 @@ void State::playMusic(const std::string& trackName) { //utilizzo playMusic 1 vol
 void updatePlayer(State&gs) {
     int speed = 10; //controllando a ogni frame (non piu handle) va diminuita la velocita 
 
-	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A)) { //isKeyPressed invece di keyPressed per controllo tempo reale, permette di muoversi e sparare insieme
+	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Left)) { //isKeyPressed invece di keyPressed per controllo tempo reale, permette di muoversi e sparare insieme
 	    gs.player.sprite.move(sf::Vector2f(-speed, 0));
 	}
-	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D)) {
+	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Right)) {
 		gs.player.sprite.move(sf::Vector2f(speed, 0));
 	}
 
@@ -244,9 +246,12 @@ void updateplayerBullets(State& gs) {
 
 //spostamento nemici
 void updateEnemies(State& gs) {
-    if(gs.move_clock.getElapsedTime().asSeconds() >= 1.0) {
+    float secondsToElapse = std::clamp(gs.enemiesQuantity/60.0, 0.09, 0.8); //con clamp definisco lim min e max di tempo da contare, divido per 60 come il num iniziale di nemici
+    if(gs.enemiesQuantity == 1)secondsToElapse = 0.06;
+
+    if(gs.move_clock.getElapsedTime().asSeconds() >= secondsToElapse) {
         if(!gs.enemies.empty()) {
-            float dist = 60;
+            float dist = std::clamp(3000.0 / gs.enemiesQuantity, 70.0, 85.0); //con clamp definisco lim min e max di tempo da contare
             bool edge = false;
 
             float minX = gs.enemies[0].sprite.getPosition().x; //trova estremi
@@ -277,7 +282,7 @@ void updateEnemies(State& gs) {
                     enemy.animate();  
                 }
             }
-             gs.move_clock.restart();
+            gs.move_clock.restart();
         }
     }     
 }
@@ -325,13 +330,14 @@ void updateEnemyBullets(State& gs) {
 void updatePlayerBulletsCollisions(State& gs) { 
     for(auto& playerBullet : gs.playerBullets) {
         sf::FloatRect playerBulletBounds = playerBullet.sprite.getGlobalBounds();
-    
+        
         for(auto& enemy : gs.enemies) {
             if(enemy.isAlive) {
                 sf::FloatRect enemyBounds = enemy.sprite.getGlobalBounds();
             
                 if(playerBulletBounds.findIntersection(enemyBounds).has_value()) {
                     enemy.isAlive = false;
+                    gs.enemiesQuantity--; //decrementa contatore nemici
                     gs.player.score += enemy.points;
 
                     Explosion exp(gs.explosion_texture);

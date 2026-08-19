@@ -35,6 +35,7 @@ struct State {
     sf::Texture enemy1_texture;
     sf::Texture enemy3_texture;
     sf::Texture enemy2_texture;
+    int enemiesQuantity; //per regolare vel nemici
 
     sf::Clock move_clock; //per spostamento nemici
     bool right_dir = true; //direzione nemici, prima era sotto ma mi serve persistente
