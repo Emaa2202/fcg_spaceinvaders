@@ -88,4 +88,23 @@ struct Ui {
 };
 
 
+struct Pause {
+    sf::Font font;
+    sf::Text title;
+    std::vector<sf::Text> captions;
+    int selectedCaptionIndex;
 
+    Pause();
+    void up();
+    void down();
+    void mouse(sf::Vector2f mousePos);
+    
+
+    void draw(sf::RenderWindow& window) const {
+        window.draw(title);
+        for (const auto& c : captions) {
+            window.draw(c);
+        }
+    }
+    
+};

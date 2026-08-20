@@ -51,6 +51,7 @@ struct State {
 
     bool gameOver = false; //per far apparirre la schermata gameover
     bool startScreen = true;
+    bool isPaused = false;
 
     sf::Clock gameoverTransition_clock; //per non far apparire la schermata gameover instantaneamente
     bool gameoverTransition = false;
@@ -61,6 +62,7 @@ struct State {
     Ui ui;
     Start start;
     End end;
+    Pause pause;
 
     State();
     void initEnemies();

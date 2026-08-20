@@ -37,7 +37,7 @@ Start::Start() :
         //titolo
         title.setString("Space Invaders");
         title.setCharacterSize(256);
-
+        
         sf::FloatRect bounds = title.getLocalBounds();
         title.setOrigin(sf::Vector2f(bounds.size.x / 2, bounds.size.y / 2));
 
@@ -122,6 +122,76 @@ Ui::Ui() :
 }
 
 
+Pause::Pause() :
+        title(font) 
+    {    
+        font.openFromMemory(font_ttf, font_ttf_len);
+
+        //titolo
+        title.setString("Pausa");
+        title.setCharacterSize(412);
+        
+        sf::FloatRect bounds = title.getLocalBounds();
+        title.setOrigin(sf::Vector2f(bounds.size.x / 2, bounds.size.y / 2));
+
+        title.setFillColor(sf::Color::White);
+        title.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, (sf::VideoMode::getDesktopMode().size.y/ 2.0) * 0.5));
+
+        selectedCaptionIndex = 0; //prima di default
+        for(int i = 0; i < 2; ++i) {
+            sf::Text text(font);
+            if(i == 0) text.setString("Riprendi");
+            else text.setString("Esci");
+            text.setCharacterSize(128);
+            
+            sf::FloatRect textBounds = text.getLocalBounds();
+            text.setOrigin(sf::Vector2f(textBounds.size.x / 2, textBounds.size.y / 2));
+            
+            //una sotto l'altra
+            if(i == 0) text.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, sf::VideoMode::getDesktopMode().size.y/ 2.0 * 0.6 + 300));
+            else text.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, sf::VideoMode::getDesktopMode().size.y/ 2.0 * 0.6 + 450));
+            
+            //evidenzia
+            if(i == 0) text.setFillColor(sf::Color::White);
+            else text.setFillColor(sf::Color(128,128,128));
+
+            captions.push_back(text);
+        }
+
+}
+
+void Pause::up() {
+    if(selectedCaptionIndex - 1 >= 0) {
+        captions[selectedCaptionIndex].setFillColor(sf::Color(128,128,128));
+        selectedCaptionIndex--;
+        captions[selectedCaptionIndex].setFillColor(sf::Color::White);
+    }
+    else down();
+}
+
+void Pause::down() {
+    if(selectedCaptionIndex + 1 < 2) {
+        captions[selectedCaptionIndex].setFillColor(sf::Color(128,128,128));
+        selectedCaptionIndex++;
+        captions[selectedCaptionIndex].setFillColor(sf::Color::White);
+
+    }
+    else up();
+}
+
+void Pause::mouse(sf::Vector2f mousePos) {
+    for(int i =0; i < 2; i++) {
+        if(captions[i].getGlobalBounds().contains(mousePos)) { //se mouse è su scritta
+            if(selectedCaptionIndex != i){  //se =i ignora e resta di default
+                captions[selectedCaptionIndex].setFillColor(sf::Color(128,128,128)); //scelta precedente 
+                selectedCaptionIndex = i; //aggiorna scelta corrente
+                captions[selectedCaptionIndex].setFillColor(sf::Color::White); //scelta corrente 
+            }
+        }   
+    }
+}
+
+
 State::State() :
         //caricamento texture e collegamento agli sprite
         background(spacebackground_jpg, spacebackground_jpg_len),
@@ -161,7 +231,7 @@ State::State() :
 
         initEnemies();        
         
-    }
+}
 
 //posizionamento nemici
 void State::initEnemies() {
@@ -196,6 +266,7 @@ void State::initEnemies() {
 
     enemiesQuantity = enemies.size(); //inizializza contatore nemici
 }
+
 void State::playMusic(const std::string& trackName) { //utilizzo playMusic 1 volta nel main, 1 volta al restart e al gameover faccio soundtrack.stop()
     std::string path = audioDir + "/" + trackName;
     soundtrack.openFromFile(path);

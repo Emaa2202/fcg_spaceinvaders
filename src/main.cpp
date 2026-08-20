@@ -16,13 +16,56 @@ void handle(const T &, State &gs) { //eventi non gestiti esplicitamente
     
 }
 
+
+//movimento mouse pausa
+void handle(const sf::Event::MouseMoved &event, State &gs) {
+    sf::Vector2f mousePos = gs.window.mapPixelToCoords(sf::Vector2i(event.position.x, event.position.y));
+    gs.pause.mouse(mousePos);
+}
+
+//click mouse pausa
+void handle(const sf::Event::MouseButtonPressed &event, State &gs) {
+    sf::Vector2f mousePos = gs.window.mapPixelToCoords(sf::Vector2i(event.position.x, event.position.y));
+    if(gs.isPaused && event.button == sf::Mouse::Button::Left){
+        if(gs.pause.captions[gs.pause.selectedCaptionIndex].getGlobalBounds().contains(mousePos)) {
+            if(gs.pause.selectedCaptionIndex == 0) { 
+                gs.isPaused = false;
+                gs.soundtrack.play();
+            } 
+            else if (gs.pause.selectedCaptionIndex == 1) gs.window.close();
+        }
+    }
+}
+
+
 //resetta tutto e riporta gameOver a false, facendo ripartire l update
 void handle(const sf::Event::KeyPressed &event, State &gs) {
     if(gs.startScreen && event.code == sf::Keyboard::Key::Enter) { //inizia la partita
         gs.startScreen = false;
         gs.player.score = 0;
     }
-    
+
+    if(!gs.startScreen && !gs.gameOver) {
+        if(event.code == sf::Keyboard::Key::Escape) {
+            gs.isPaused = true;
+            gs.soundtrack.pause();
+        }
+    }
+
+    if(gs.isPaused) { //navigazione pausa con tastiera
+        if(event.code == sf::Keyboard::Key::Up) {
+            gs.pause.up();
+        }
+        if(event.code == sf::Keyboard::Key::Down) gs.pause.down();
+        if(event.code == sf::Keyboard::Key::Enter) {
+            if(gs.pause.selectedCaptionIndex == 0) { //riprendi
+                gs.isPaused = false;
+                gs.soundtrack.play();
+            }
+            else gs.window.close();
+        }
+    }
+
     if(gs.gameOver && sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Enter)) { //riavvia
         gs.player.resetAll();
 
@@ -51,9 +94,12 @@ void update(State& gs) {
         return;
     }
     else if(gs.gameOver) {
-        gs.soundtrack.stop();
         gs.end.update(gs.player.score);
         gs.end.updateCaption();
+        return;
+    }
+
+    if(gs.isPaused) {
         return;
     }
 
@@ -62,6 +108,8 @@ void update(State& gs) {
             gs.gameoverTransition = false; //tolgo la transizione, metto true a gameOver e appare la schermata
             gs.gameOver = true; 
             
+            gs.soundtrack.stop();
+
             gs.explosions.clear();
             gs.enemyBullets.clear();
             gs.playerBullets.clear();
@@ -142,6 +190,10 @@ void doGraphics(State &gs) {
             gs.window.draw(exp.sprite);
         }
 
+        if(gs.isPaused) {
+            gs.pause.draw(gs.window);
+        }
+
         gs.ui.draw(gs.window);
     }
     gs.window.display();
@@ -165,7 +217,6 @@ int main(int argc, char* argv[]) {
                                { handle(event, gs); });
 
         update(gs);
-
         doGraphics(gs);
     }
 }
