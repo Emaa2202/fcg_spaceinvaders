@@ -1,10 +1,10 @@
-/*--------------------------------------
-----------------------------------------
+/*------------------------------------------------------------
+--------------------------------------------------------------
 Questo file contiene:
-    Costruttori di Start, End, Ui, State
+    Costruttori di Start, End, Ui, State con relative funzioni
     Implementazione delle funzioni update
-----------------------------------------
---------------------------------------*/
+--------------------------------------------------------------
+------------------------------------------------------------*/
 #include <SFML/Audio.hpp>
 #include <algorithm> //per clamp che mi semplifica il movimento 
 #include <ctime> //per rand
@@ -25,9 +25,13 @@ Questo file contiene:
 #include "sounds/playerExplosion.hpp"
 
 
-/*-----------------------------
------------Costruttori---------
-------------------------------*/
+/*----------------------------------------
+-----------Costruttori e funzioni---------
+----------------------------------------*/
+
+/*------------------
+--------START-------
+-------------------*/
 Start::Start() :
         title(font), 
         caption(font)
@@ -56,7 +60,24 @@ Start::Start() :
 
 }
 
+void Start::updateCaption() {
+    if(static_cast<int>(effect_clock.getElapsedTime().asSeconds()) % 2 == 0) {
+        caption.setFillColor(sf::Color::Transparent);
+    }
+    else {
+        caption.setFillColor(sf::Color::White);
+    }   
+}
 
+void Start::draw(sf::RenderWindow& window) {
+    window.draw(title);
+    window.draw(caption);
+}
+
+
+/*------------------
+---------END--------
+-------------------*/
 End::End() :
         title(font), 
         caption(font),
@@ -94,7 +115,29 @@ End::End() :
         finalScore.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, (sf::VideoMode::getDesktopMode().size.y/ 2.0) * 0.5));
 }
 
+void End::updateCaption() {
+        if(static_cast<int>(effect_clock.getElapsedTime().asSeconds()) % 2 == 0) {
+            caption.setFillColor(sf::Color::Transparent);
+        }
+        else {
+            caption.setFillColor(sf::Color::White);
+        }   
+    }
 
+void End::update(int playerScore) {
+    finalScore.setString("Punteggio: " + std::to_string(playerScore));
+}
+
+void End::draw(sf::RenderWindow& window) {
+    window.draw(title);
+    window.draw(caption);
+    window.draw(finalScore);
+}
+
+
+/*------------------
+---------UI---------
+-------------------*/
 Ui::Ui() :
         livesText(font),
         scoreText(font),
@@ -121,7 +164,22 @@ Ui::Ui() :
         levelText.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x * 0.85, sf::VideoMode::getDesktopMode().size.y * 0.89));
 }
 
+void Ui::update(int playerLifes, int playerScore, int level) {
+    livesText.setString("Vite: " + std::to_string(playerLifes));
+    scoreText.setString("Punteggio: " + std::to_string(playerScore));
+    levelText.setString("Livello: " + std::to_string(level));
+}
 
+void Ui:: draw(sf::RenderWindow& window) {
+    window.draw(livesText);
+    window.draw(scoreText);
+    window.draw(levelText);
+}
+
+
+/*------------------
+--------PAUSE-------
+-------------------*/
 Pause::Pause() :
         title(font) 
     {    
@@ -191,7 +249,17 @@ void Pause::mouse(sf::Vector2f mousePos) {
     }
 }
 
+void Pause::draw(sf::RenderWindow& window) {
+    window.draw(title);
+    for(const auto& c : captions) {
+        window.draw(c);
+    }
+}
 
+
+/*------------------
+--------STATE-------
+-------------------*/
 State::State() :
         //caricamento texture e collegamento agli sprite
         background(spacebackground_jpg, spacebackground_jpg_len),

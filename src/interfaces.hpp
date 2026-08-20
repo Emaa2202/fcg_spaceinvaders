@@ -17,21 +17,8 @@ struct Start {
     sf::Clock effect_clock; //clock per effetto 
 
     Start();
-
-    void updateCaption() {
-        if(static_cast<int>(effect_clock.getElapsedTime().asSeconds()) % 2 == 0) {
-            caption.setFillColor(sf::Color::Transparent);
-        }
-        else {
-            caption.setFillColor(sf::Color::White);
-        }   
-    }
-
-    void draw(sf::RenderWindow& window) const {
-        window.draw(title);
-        window.draw(caption);
-    }
-    
+    void updateCaption();
+    void draw(sf::RenderWindow& window);
 };
 
 
@@ -43,25 +30,9 @@ struct End {
     sf::Clock effect_clock; //clock per effetto 
 
     End();
-
-    void updateCaption() {
-        if(static_cast<int>(effect_clock.getElapsedTime().asSeconds()) % 2 == 0) {
-            caption.setFillColor(sf::Color::Transparent);
-        }
-        else {
-            caption.setFillColor(sf::Color::White);
-        }   
-    }
-
-    void update(int playerScore) {
-        finalScore.setString("Punteggio: " + std::to_string(playerScore));
-    }
-
-    void draw(sf::RenderWindow& window) const {
-        window.draw(title);
-        window.draw(caption);
-        window.draw(finalScore);
-    }
+    void updateCaption();
+    void update(int playerScore);
+    void draw(sf::RenderWindow& window);
     
 };
 
@@ -73,18 +44,8 @@ struct Ui {
     sf::Text levelText;
 
     Ui();
-
-    void update(int playerLifes, int playerScore, int level) {
-        livesText.setString("Vite: " + std::to_string(playerLifes));
-        scoreText.setString("Punteggio: " + std::to_string(playerScore));
-        levelText.setString("Livello: " + std::to_string(level));
-    }
-
-    void draw(sf::RenderWindow& window) const {
-        window.draw(livesText);
-        window.draw(scoreText);
-        window.draw(levelText);
-    }
+    void update(int playerLifes, int playerScore, int level);
+    void draw(sf::RenderWindow& window);
 };
 
 
@@ -98,13 +59,5 @@ struct Pause {
     void up();
     void down();
     void mouse(sf::Vector2f mousePos);
-    
-
-    void draw(sf::RenderWindow& window) const {
-        window.draw(title);
-        for (const auto& c : captions) {
-            window.draw(c);
-        }
-    }
-    
+    void draw(sf::RenderWindow& window);
 };
