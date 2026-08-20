@@ -23,6 +23,11 @@ struct State {
 
     sf::Texture player_texture;
     Player player;
+    sf::Texture shield_texture;
+    Shield shield;
+    bool isShield = false; //controlla se bisogna disegnare scudo
+    sf::SoundBuffer shieldSound_buffer;
+    sf::Sound shield_sound;
 
 	std::vector<playerBullet> playerBullets;
     sf::Texture playerBullet_texture;
@@ -77,3 +82,4 @@ void updatePlayerBulletsCollisions(State& gs);
 void updateEnemyBulletsCollisions(State& gs);
 void updateGameOver(State& gs);
 void updateLevel(State& gs);
+void updateShield(State& gs);

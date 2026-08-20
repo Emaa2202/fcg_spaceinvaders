@@ -70,11 +70,11 @@ void handle(const sf::Event::KeyPressed &event, State &gs) {
         gs.player.resetAll();
 
         gs.gameOver = false;
-        
         gs.gameoverTransition = false;
 
         gs.playMusic("soundtrack.mp3"); //riproduce audio con var soundtrack
 
+        gs.isShield = false;
         gs.playerBullets.clear();
         gs.enemyBullets.clear();
         gs.enemies.clear();
@@ -124,6 +124,8 @@ void update(State& gs) {
             //pulisco tutto, aggiungo 1 vita e incremento contatore livelli
             gs.player.level++;
             gs.player.lifes++;
+            gs.player.shields++;
+            gs.isShield = false;
             gs.player.resetPosition();
             gs.initEnemies();
  
@@ -140,6 +142,7 @@ void update(State& gs) {
     }
 
     updatePlayer(gs);
+    updateShield(gs);
     updateplayerBullets(gs);
     updateEnemies(gs);
     updateEnemyBullets(gs);
@@ -184,6 +187,7 @@ void doGraphics(State &gs) {
 
         //giocatore
         gs.window.draw(gs.player.sprite);
+        if(gs.isShield) gs.window.draw(gs.shield.sprite);
 
         //esplosioni
         for (const auto& exp : gs.explosions) {

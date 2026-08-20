@@ -18,11 +18,13 @@ Questo file contiene:
 #include "graphics/enemy3.hpp"
 #include "graphics/enemyBullet.hpp"
 #include "graphics/explosion.hpp"
+#include "graphics/shield.hpp"
 
 #include "graphics/font.hpp"
 
 #include "sounds/playerBulletSound.hpp"
 #include "sounds/playerExplosion.hpp"
+#include "sounds/shield.hpp"
 
 
 /*----------------------------------------
@@ -267,6 +269,11 @@ State::State() :
 
         player_texture(player_png, player_png_len),
         player(player_texture),
+        shield_texture(shield_png, shield_png_len),
+        shield(shield_texture),
+        shieldSound_buffer(shield_mp3, shield_mp3_len),
+        shield_sound(shieldSound_buffer),
+
         playerBullet_texture(playerBullet_png, playerBullet_png_len),
         playerBullets_buffer(playerBullet_mp3, playerBullet_mp3_len),
         playerBullets_sound(playerBullets_buffer),
@@ -367,6 +374,7 @@ void updatePlayer(State&gs) {
     gs.player.sprite.setPosition(pos);
 }
 
+
 void updateplayerBullets(State& gs) {
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Space)) {
         if(gs.player.canShoot()) {
@@ -383,10 +391,11 @@ void updateplayerBullets(State& gs) {
     } 
 }
 
+
 //spostamento nemici
 void updateEnemies(State& gs) {
     float secondsToElapse = std::clamp(gs.enemiesQuantity/60.0, 0.09, 0.8); //con clamp definisco lim min e max di tempo da contare, divido per 60 come il num iniziale di nemici
-    if(gs.enemiesQuantity == 1)secondsToElapse = 0.06;
+    if(gs.enemiesQuantity == 1)secondsToElapse = 0.04;
 
     if(gs.move_clock.getElapsedTime().asSeconds() >= secondsToElapse) {
         if(!gs.enemies.empty()) {
@@ -410,7 +419,7 @@ void updateEnemies(State& gs) {
             if(edge) {
                 gs.right_dir = !gs.right_dir;
                 for(auto& enemy : gs.enemies) {
-                    enemy.sprite.move(sf::Vector2f(0.0, 50.0)); //nemici scendono
+                    enemy.sprite.move(sf::Vector2f(0.0,60.0)); //nemici scendono
                     enemy.animate(); //sprite animaz
                 }
             }
@@ -514,16 +523,20 @@ void updateEnemyBulletsCollisions(State& gs) {
     for(auto& enemyBullet : gs.enemyBullets) {
         sf::FloatRect enBulletsBounds = enemyBullet.sprite.getGlobalBounds();
         sf::FloatRect playerBounds = gs.player.sprite.getGlobalBounds();
-        
+        sf::FloatRect shieldBounds = gs.shield.sprite.getGlobalBounds();
+
         if(enBulletsBounds.findIntersection(playerBounds).has_value()) {
-            gs.player.lifes--;
-            gs.playerExplosion_sound.play();
-            
+            if(gs.isShield) {
+                gs.shield_sound.play();
+            }
+            else {
+                gs.player.lifes--; 
+                gs.playerExplosion_sound.play();
+            }
             Explosion exp(gs.explosion_texture);
             exp.sprite.setPosition(gs.player.sprite.getPosition());
             exp.sprite.setScale(sf::Vector2f(0.5, 0.5));
             gs.explosions.push_back(exp);
-
             enemyBullet.pos.y = -500;
         }
     }
@@ -562,9 +575,29 @@ void updateGameOver(State& gs) {
 
 }
 
+
 void updateLevel(State& gs) {
     if(gs.enemies.empty() && !gs.nextLevelTransition) {
         gs.nextLevelTransition = true;
         gs.nextLevelTransition_clock.restart(); 
+    }
+}
+
+
+void updateShield(State& gs) {
+    if(gs.player.shields > 0) {
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Up) && gs.shield.cooldown.getElapsedTime().asSeconds() >= 1.0) {
+            gs.isShield = true;
+            gs.shield.cooldown.restart();
+            gs.shield.clock.restart();
+        }
+
+        if(gs.isShield) {
+            gs.shield.sprite.setPosition(gs.player.sprite.getPosition());
+            if(gs.shield.clock.getElapsedTime().asSeconds() >= 0.7) {
+                gs.player.shields--;
+                gs.isShield = false;
+            }
+        }
     }
 }

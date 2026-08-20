@@ -16,6 +16,7 @@ Questo file contiene:
 struct Player {
     sf::Sprite sprite;
     int lifes = 3;
+    int shields = 2;
     int score = 0;
     sf::Clock cooldown; //cooldown proiettili
     int level = 1;
@@ -41,7 +42,8 @@ struct Player {
         sprite.setPosition(sf::Vector2f(static_cast<float>(sf::VideoMode::getDesktopMode().size.x) / 2.0, static_cast<float>(sf::VideoMode::getDesktopMode().size.y) * 0.8));
         lifes = 3;
         score = 0;
-        level = 1; 
+        level = 1;
+        shields = 2; 
     }
 
     bool canShoot() {
@@ -180,4 +182,23 @@ struct Explosion {
         float centro_y = static_cast<float>(texture.getSize().y) / 2.0;
         sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
 	}
+};
+
+
+struct Shield {
+    sf::Sprite sprite;
+    sf::Clock clock; //durata scudo
+    sf::Clock cooldown; //cooldown
+
+    Shield(const sf::Texture& texture) :
+        sprite(texture)
+    {
+        float centro_x = static_cast<float>(texture.getSize().x) / 2.0;
+        float centro_y = static_cast<float>(texture.getSize().y) / 2.0;
+        sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
+
+        sprite.setScale(sf::Vector2f(0.5, 0.5));
+        sprite.setColor(sf::Color(255, 255, 255, 100)); //leggermente trasparente
+    }
+
 };
