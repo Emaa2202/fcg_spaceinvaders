@@ -159,7 +159,7 @@ struct enemyBullet {
 
 	enemyBullet(const sf::Texture& texture, sf::Vector2f pos_iniziale) :
 		pos(pos_iniziale),
-		speed(20.0),
+		speed(15.0),
 		sprite(texture)
 	{
 		float centro_x = static_cast<float>(texture.getSize().x) / 2.0;
@@ -201,4 +201,40 @@ struct Shield {
         sprite.setColor(sf::Color(255, 255, 255, 100)); //leggermente trasparente
     }
 
+};
+
+
+struct ShieldCharger {
+    sf::Sprite sprite;
+
+    float frameWidth;
+    float frameHeight;
+    int currentFrame = 0;
+    sf::Clock cornometro_animaz;
+    float sec_per_frame = 0.2;
+
+    ShieldCharger(const sf::Texture& texture) :
+        sprite(texture)
+    {
+        frameWidth = texture.getSize().x / 6.0; 
+        frameHeight = texture.getSize().y;
+
+        sprite.setTextureRect(sf::IntRect({0, 0}, {frameWidth, frameHeight})); //sprite predefinito, y sempre 0 perchè uso hpp 
+
+        float centro_x = static_cast<float>(frameWidth) / 2; //centro calcolato su singolo frame
+        float centro_y = static_cast<float>(frameHeight) / 2;
+        sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
+        sprite.setScale(sf::Vector2f(0.3, 0.3));
+    }
+
+    void animate() {
+        if(cornometro_animaz.getElapsedTime().asSeconds() >= sec_per_frame) {
+            currentFrame = (currentFrame + 1) % 6; //alterna i frame
+
+            int rectX = currentFrame * frameWidth;
+            sprite.setTextureRect(sf::IntRect({rectX, 0}, {frameWidth, frameHeight})); //cambio sprite
+
+            cornometro_animaz.restart();
+        }
+    }
 };

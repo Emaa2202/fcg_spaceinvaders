@@ -75,6 +75,8 @@ void handle(const sf::Event::KeyPressed &event, State &gs) {
         gs.playMusic("soundtrack.mp3"); //riproduce audio con var soundtrack
 
         gs.isShield = false;
+        gs.shieldChargerReleased = false;
+
         gs.playerBullets.clear();
         gs.enemyBullets.clear();
         gs.enemies.clear();
@@ -125,7 +127,10 @@ void update(State& gs) {
             gs.player.level++;
             gs.player.lifes++;
             gs.player.shields++;
+            
             gs.isShield = false;
+            gs.shieldChargerReleased = false;
+
             gs.player.resetPosition();
             gs.initEnemies();
  
@@ -142,14 +147,15 @@ void update(State& gs) {
     }
 
     updatePlayer(gs);
-    updateShield(gs);
     updateplayerBullets(gs);
+    updateShield(gs);
+    updateShieldCharger(gs);
     updateEnemies(gs);
     updateEnemyBullets(gs);
     updatePlayerBulletsCollisions(gs);
     updateEnemyBulletsCollisions(gs);
-    if(gs.player.lifes < 0) gs.ui.update(0, gs.player.score, gs.player.level); //per nascondere il -1 vite al gameOver
-    else gs.ui.update(gs.player.lifes, gs.player.score, gs.player.level);
+    if(gs.player.lifes < 0) gs.ui.update(0, gs.player.score, gs.player.level, gs.player.shields); //per nascondere il -1 vite al gameOver
+    else gs.ui.update(gs.player.lifes, gs.player.score, gs.player.level, gs.player.shields);
     updateLevel(gs);
     updateGameOver(gs);
 }
@@ -174,6 +180,8 @@ void doGraphics(State &gs) {
 	    for (const auto& enemyBullet : gs.enemyBullets) {
             gs.window.draw(enemyBullet.sprite);
         }
+
+        if(gs.shieldChargerReleased) gs.window.draw(gs.shieldCharger.sprite);
 
         //nemici
 	    for (const auto& enemy : gs.enemies) {

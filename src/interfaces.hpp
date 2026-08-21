@@ -42,9 +42,10 @@ struct Ui {
     sf::Text livesText;
     sf::Text scoreText;
     sf::Text levelText;
+    sf::Text shieldText;
 
     Ui();
-    void update(int playerLifes, int playerScore, int level);
+    void update(int playerLifes, int playerScore, int level, int shields);
     void draw(sf::RenderWindow& window);
 };
 

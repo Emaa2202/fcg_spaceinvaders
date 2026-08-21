@@ -23,11 +23,18 @@ struct State {
 
     sf::Texture player_texture;
     Player player;
+
     sf::Texture shield_texture;
     Shield shield;
     bool isShield = false; //controlla se bisogna disegnare scudo
     sf::SoundBuffer shieldSound_buffer;
     sf::Sound shield_sound;
+
+    sf::Texture shieldCharger_texture;
+    ShieldCharger shieldCharger;
+    bool shieldChargerReleased = false;
+    sf::SoundBuffer shieldChargerSound_buffer;
+    sf::Sound shieldChargerSound;
 
 	std::vector<playerBullet> playerBullets;
     sf::Texture playerBullet_texture;
@@ -40,7 +47,7 @@ struct State {
     sf::Texture enemy1_texture;
     sf::Texture enemy3_texture;
     sf::Texture enemy2_texture;
-    int enemiesQuantity; //per regolare vel nemici
+    int enemiesQuantity; //per regolare vel nemici 
 
     sf::Clock move_clock; //per spostamento nemici
     bool right_dir = true; //direzione nemici, prima era sotto ma mi serve persistente
@@ -83,3 +90,5 @@ void updateEnemyBulletsCollisions(State& gs);
 void updateGameOver(State& gs);
 void updateLevel(State& gs);
 void updateShield(State& gs);
+void spawnShieldCharger(State& gs);
+void updateShieldCharger(State& gs);

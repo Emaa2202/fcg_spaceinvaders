@@ -19,12 +19,14 @@ Questo file contiene:
 #include "graphics/enemyBullet.hpp"
 #include "graphics/explosion.hpp"
 #include "graphics/shield.hpp"
+#include "graphics/shieldCharger.hpp"
 
 #include "graphics/font.hpp"
 
 #include "sounds/playerBulletSound.hpp"
 #include "sounds/playerExplosion.hpp"
 #include "sounds/shield.hpp"
+#include "sounds/shieldCharger.hpp"
 
 
 /*----------------------------------------
@@ -143,22 +145,30 @@ void End::draw(sf::RenderWindow& window) {
 Ui::Ui() :
         livesText(font),
         scoreText(font),
-        levelText(font) 
+        levelText(font),
+        shieldText(font)
     {    
         font.openFromMemory(font_ttf, font_ttf_len);
+        
+        //punti
+        scoreText.setString("Punteggio: 0");
+        scoreText.setCharacterSize(64);
+        scoreText.setFillColor(sf::Color::White);
+        scoreText.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x * 0.01, sf::VideoMode::getDesktopMode().size.y * 0.89));
         
         //vite
         livesText.setString("Vite: 3");
         livesText.setCharacterSize(64);
         livesText.setFillColor(sf::Color::White);
-        livesText.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x * 0.01, sf::VideoMode::getDesktopMode().size.y * 0.89));
+        livesText.setPosition(sf::Vector2f(scoreText.getGlobalBounds().position.x + scoreText.getGlobalBounds().size.x * 1.4, sf::VideoMode::getDesktopMode().size.y * 0.89));
 
-        //punti
-        scoreText.setString("Punteggio: 0");
-        scoreText.setCharacterSize(64);
-        scoreText.setFillColor(sf::Color::White);
-        scoreText.setPosition(sf::Vector2f(livesText.getGlobalBounds().position.x + livesText.getGlobalBounds().size.x * 1.5, sf::VideoMode::getDesktopMode().size.y * 0.89));
-    
+
+        //scudi
+        shieldText.setString("Scudi: 2");
+        shieldText.setCharacterSize(64);
+        shieldText.setFillColor(sf::Color::White);
+        shieldText.setPosition(sf::Vector2f(livesText.getGlobalBounds().position.x + livesText.getGlobalBounds().size.x * 1.6, sf::VideoMode::getDesktopMode().size.y * 0.89));
+
         //contatore livelli
         levelText.setString("Livello: 1");
         levelText.setCharacterSize(64);
@@ -166,15 +176,17 @@ Ui::Ui() :
         levelText.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x * 0.85, sf::VideoMode::getDesktopMode().size.y * 0.89));
 }
 
-void Ui::update(int playerLifes, int playerScore, int level) {
+void Ui::update(int playerLifes, int playerScore, int level, int shield) {
     livesText.setString("Vite: " + std::to_string(playerLifes));
     scoreText.setString("Punteggio: " + std::to_string(playerScore));
     levelText.setString("Livello: " + std::to_string(level));
+    shieldText.setString("Scudi: " + std::to_string(shield));
 }
 
 void Ui:: draw(sf::RenderWindow& window) {
     window.draw(livesText);
     window.draw(scoreText);
+    window.draw(shieldText);
     window.draw(levelText);
 }
 
@@ -269,10 +281,16 @@ State::State() :
 
         player_texture(player_png, player_png_len),
         player(player_texture),
+
         shield_texture(shield_png, shield_png_len),
         shield(shield_texture),
         shieldSound_buffer(shield_mp3, shield_mp3_len),
         shield_sound(shieldSound_buffer),
+
+        shieldCharger_texture(shieldCharger_png, shieldCharger_png_len),
+        shieldCharger(shieldCharger_texture),
+        shieldChargerSound_buffer(shieldCharger_mp3, shieldCharger_mp3_len),
+        shieldChargerSound(shieldChargerSound_buffer),
 
         playerBullet_texture(playerBullet_png, playerBullet_png_len),
         playerBullets_buffer(playerBullet_mp3, playerBullet_mp3_len),
@@ -291,8 +309,9 @@ State::State() :
     
     {   
         //gestioni audio
-        playerBullets_sound.setVolume(50.0);
+        playerBullets_sound.setVolume(20.0);
         playerExplosion_sound.setVolume(100.0);
+        shieldChargerSound.setVolume(200.0);
 
         //creazione finestra
         sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
@@ -347,7 +366,7 @@ void State::playMusic(const std::string& trackName) { //utilizzo playMusic 1 vol
     soundtrack.openFromFile(path);
     soundtrack.stop(); //se c era qualcosa prima, lo ferma
     soundtrack.setLooping(true);
-    soundtrack.setVolume(60.0);
+    soundtrack.setVolume(50.0);
     soundtrack.play();
 }
 
@@ -358,10 +377,10 @@ void State::playMusic(const std::string& trackName) { //utilizzo playMusic 1 vol
 void updatePlayer(State&gs) {
     int speed = 10; //controllando a ogni frame (non piu handle) va diminuita la velocita 
 
-	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Left)) { //isKeyPressed invece di keyPressed per controllo tempo reale, permette di muoversi e sparare insieme
+	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A)) { //isKeyPressed invece di keyPressed per controllo tempo reale, permette di muoversi e sparare insieme
 	    gs.player.sprite.move(sf::Vector2f(-speed, 0));
 	}
-	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Right)) {
+	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D)) {
 		gs.player.sprite.move(sf::Vector2f(speed, 0));
 	}
 
@@ -419,7 +438,7 @@ void updateEnemies(State& gs) {
             if(edge) {
                 gs.right_dir = !gs.right_dir;
                 for(auto& enemy : gs.enemies) {
-                    enemy.sprite.move(sf::Vector2f(0.0,60.0)); //nemici scendono
+                    enemy.sprite.move(sf::Vector2f(0.0,50.0)); //nemici scendono
                     enemy.animate(); //sprite animaz
                 }
             }
@@ -474,6 +493,35 @@ void updateEnemyBullets(State& gs) {
 }
 
 
+//per gestire gli scudi bonus (ausiliaria di updatePlayerBulletsCollisions)
+void spawnShieldCharger(State& gs, Enemy enemy) {
+    float prob = rand() % 100;
+    if(prob <= 2.0 && !gs.shieldChargerReleased) {
+        gs.shieldChargerReleased = true;
+        gs.shieldCharger.sprite.setPosition(enemy.sprite.getPosition());
+    }
+}
+
+void updateShieldCharger(State& gs) {
+    if(gs.shieldChargerReleased) {
+        gs.shieldCharger.animate();
+        gs.shieldCharger.sprite.move(sf::Vector2f(0, 15));
+
+        sf::FloatRect shieldChargerBounds = gs.shieldCharger.sprite.getGlobalBounds();
+        sf::FloatRect playerBounds = gs.player.sprite.getGlobalBounds();
+        if(shieldChargerBounds.findIntersection(playerBounds).has_value()) {
+            gs.player.shields++;
+            gs.shieldChargerSound.play();
+            gs.shieldCharger.sprite.setPosition(sf::Vector2f(0, -500));
+            gs.shieldChargerReleased = false;
+        }
+
+        else if(gs.shieldCharger.sprite.getPosition().y >= sf::VideoMode::getDesktopMode().size.y) {
+            gs.shieldChargerReleased = false;
+        }
+    }
+}
+
 //collisioni proiettile giocatore
 void updatePlayerBulletsCollisions(State& gs) { 
     for(auto& playerBullet : gs.playerBullets) {
@@ -482,8 +530,9 @@ void updatePlayerBulletsCollisions(State& gs) {
         for(auto& enemy : gs.enemies) {
             if(enemy.isAlive) {
                 sf::FloatRect enemyBounds = enemy.sprite.getGlobalBounds();
-            
+                
                 if(playerBulletBounds.findIntersection(enemyBounds).has_value()) {
+                    spawnShieldCharger(gs, enemy);
                     enemy.isAlive = false;
                     gs.enemiesQuantity--; //decrementa contatore nemici
                     gs.player.score += enemy.points;
@@ -503,7 +552,9 @@ void updatePlayerBulletsCollisions(State& gs) {
     }
     
     for(int i = gs.enemies.size()-1; i >= 0; i--) {
-        if(!gs.enemies[i].isAlive) gs.enemies.erase(gs.enemies.begin() + i);
+        if(!gs.enemies[i].isAlive) {
+            gs.enemies.erase(gs.enemies.begin() + i);   
+        }
     }
 
     for(int i = gs.playerBullets.size() -1; i >= 0; i--) {
@@ -586,7 +637,7 @@ void updateLevel(State& gs) {
 
 void updateShield(State& gs) {
     if(gs.player.shields > 0) {
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Up) && gs.shield.cooldown.getElapsedTime().asSeconds() >= 1.0) {
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::LShift) && gs.shield.cooldown.getElapsedTime().asSeconds() >= 1.0) {
             gs.isShield = true;
             gs.shield.cooldown.restart();
             gs.shield.clock.restart();
