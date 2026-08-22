@@ -36,6 +36,11 @@ struct State {
     sf::SoundBuffer shieldChargerSound_buffer;
     sf::Sound shieldChargerSound;
 
+    sf::Texture nuke_texture;
+    Nuke nuke;
+    bool existsNuke = false;
+
+
 	std::vector<playerBullet> playerBullets;
     sf::Texture playerBullet_texture;
     sf::SoundBuffer playerBullets_buffer;
@@ -92,3 +97,4 @@ void updateLevel(State& gs);
 void updateShield(State& gs);
 void spawnShieldCharger(State& gs);
 void updateShieldCharger(State& gs);
+void updatePlayerNuke(State& gs);

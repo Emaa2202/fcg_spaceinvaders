@@ -76,6 +76,7 @@ void handle(const sf::Event::KeyPressed &event, State &gs) {
 
         gs.isShield = false;
         gs.shieldChargerReleased = false;
+        gs.existsNuke = false;
 
         gs.playerBullets.clear();
         gs.enemyBullets.clear();
@@ -130,6 +131,7 @@ void update(State& gs) {
             
             gs.isShield = false;
             gs.shieldChargerReleased = false;
+            gs.existsNuke = false;
 
             gs.player.resetPosition();
             gs.initEnemies();
@@ -150,6 +152,7 @@ void update(State& gs) {
     updateplayerBullets(gs);
     updateShield(gs);
     updateShieldCharger(gs);
+    updatePlayerNuke(gs);
     updateEnemies(gs);
     updateEnemyBullets(gs);
     updatePlayerBulletsCollisions(gs);
@@ -195,7 +198,12 @@ void doGraphics(State &gs) {
 
         //giocatore
         gs.window.draw(gs.player.sprite);
+        
+        //scudo
         if(gs.isShield) gs.window.draw(gs.shield.sprite);
+
+        //nuke
+        if(gs.existsNuke) gs.window.draw(gs.nuke.sprite);
 
         //esplosioni
         for (const auto& exp : gs.explosions) {

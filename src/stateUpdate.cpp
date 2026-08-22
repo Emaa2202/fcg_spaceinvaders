@@ -20,6 +20,7 @@ Questo file contiene:
 #include "graphics/explosion.hpp"
 #include "graphics/shield.hpp"
 #include "graphics/shieldCharger.hpp"
+#include "graphics/nuke.hpp"
 
 #include "graphics/font.hpp"
 
@@ -292,6 +293,9 @@ State::State() :
         shieldChargerSound_buffer(shieldCharger_mp3, shieldCharger_mp3_len),
         shieldChargerSound(shieldChargerSound_buffer),
 
+        nuke_texture(nuke_png, nuke_png_len),
+        nuke(nuke_texture),
+
         playerBullet_texture(playerBullet_png, playerBullet_png_len),
         playerBullets_buffer(playerBullet_mp3, playerBullet_mp3_len),
         playerBullets_sound(playerBullets_buffer),
@@ -339,7 +343,7 @@ void State::initEnemies() {
     float gridHeight = (rows - 1) * distY;
     
     float startX = (screenWidth - gridWidth) / 2; //posizionamento effettivo griglia
-    float startY = screenHeight * 0.07;
+    float startY = screenHeight * 0.12;
      
     for(int i = 0; i < rows; i++) {
         for(int j = 0; j < columns; j++) {
@@ -408,6 +412,22 @@ void updateplayerBullets(State& gs) {
     for(auto& bullet : gs.playerBullets) {
         bullet.sprite.move(sf::Vector2f(0, -bullet.speed));        
     } 
+}
+
+
+void updatePlayerNuke(State& gs) {
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::W)) {
+        if(gs.player.nukes == 1) {
+            gs.existsNuke = true;
+            gs.player.nukes--;
+            gs.nuke.sprite.setPosition(gs.player.sprite.getPosition());
+        }
+
+    }       
+    if(gs.existsNuke) {
+        gs.nuke.sprite.move(sf::Vector2f(0, -gs.nuke.speed));    
+        if(gs.nuke.sprite.getPosition().y <= 0.0) gs.existsNuke = false;
+    }  
 }
 
 
@@ -496,7 +516,7 @@ void updateEnemyBullets(State& gs) {
 //per gestire gli scudi bonus (ausiliaria di updatePlayerBulletsCollisions)
 void spawnShieldCharger(State& gs, Enemy enemy) {
     float prob = rand() % 100;
-    if(prob <= 2.0 && !gs.shieldChargerReleased) {
+    if(prob <= 3.0 && !gs.shieldChargerReleased) {
         gs.shieldChargerReleased = true;
         gs.shieldCharger.sprite.setPosition(enemy.sprite.getPosition());
     }

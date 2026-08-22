@@ -17,6 +17,7 @@ struct Player {
     sf::Sprite sprite;
     int lifes = 3;
     int shields = 2;
+    int nukes = 1;
     int score = 0;
     sf::Clock cooldown; //cooldown proiettili
     int level = 1;
@@ -43,7 +44,8 @@ struct Player {
         lifes = 3;
         score = 0;
         level = 1;
-        shields = 2; 
+        shields = 2;
+        nukes = 0; 
     }
 
     bool canShoot() {
@@ -236,5 +238,22 @@ struct ShieldCharger {
 
             cornometro_animaz.restart();
         }
+    }
+};
+
+
+struct Nuke {   
+    sf::Sprite sprite;
+    float speed;
+
+    Nuke(const sf::Texture& texture) :
+        sprite(texture),
+        speed(20.0)
+    {
+        float centro_x = static_cast<float>(texture.getSize().x) / 2.0;
+        float centro_y = static_cast<float>(texture.getSize().y) / 2.0;
+        sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
+
+        sprite.setScale(sf::Vector2f(0.5, 0.5));
     }
 };
