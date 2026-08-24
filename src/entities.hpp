@@ -17,7 +17,7 @@ struct Player {
     sf::Sprite sprite;
     int lifes = 3;
     int shields = 2;
-    int nukes = 1;
+    int nukes = 0;
     int score = 0;
     sf::Clock cooldown; //cooldown proiettili
     int level = 1;
@@ -255,5 +255,50 @@ struct Nuke {
         sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
 
         sprite.setScale(sf::Vector2f(0.5, 0.5));
+    }
+};
+
+
+struct Nukeship {   
+    sf::Sprite sprite;
+    int lifes;
+    float speed;
+    bool rightDirection;
+
+    float frameWidth;
+    float frameHeight;
+
+    Nukeship(const sf::Texture& texture) :
+        sprite(texture),
+        lifes(3),
+        speed(8.0),
+        rightDirection(true)
+
+    {
+        frameWidth = texture.getSize().x / 2.0; 
+        frameHeight = texture.getSize().y;
+        sprite.setTextureRect(sf::IntRect({0, 0}, {frameWidth, frameHeight})); 
+        
+        float centro_x = static_cast<float>(frameWidth) / 2.0;
+        float centro_y = static_cast<float>(frameHeight) / 2.0;
+        sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
+
+        sprite.setScale(sf::Vector2f(0.5, 0.5));
+    }
+
+    void setDirection(bool isRight) {
+        rightDirection = isRight;
+
+        int currentFrame;
+        if(rightDirection) currentFrame = 0;
+        else currentFrame = 1;
+
+        int rectX = currentFrame * frameWidth;
+        sprite.setTextureRect(sf::IntRect({rectX, 0}, {frameWidth, frameHeight})); 
+    }
+
+    void move(bool isRight) {
+        if(isRight) sprite.move(sf::Vector2f(speed, 0));
+        else sprite.move(sf::Vector2f(-speed, 0));
     }
 };

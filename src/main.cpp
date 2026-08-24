@@ -77,6 +77,7 @@ void handle(const sf::Event::KeyPressed &event, State &gs) {
         gs.isShield = false;
         gs.shieldChargerReleased = false;
         gs.existsNuke = false;
+        gs.existsNukeShip = false;
 
         gs.playerBullets.clear();
         gs.enemyBullets.clear();
@@ -132,6 +133,7 @@ void update(State& gs) {
             gs.isShield = false;
             gs.shieldChargerReleased = false;
             gs.existsNuke = false;
+            gs.existsNukeShip = false;
 
             gs.player.resetPosition();
             gs.initEnemies();
@@ -153,6 +155,9 @@ void update(State& gs) {
     updateShield(gs);
     updateShieldCharger(gs);
     updatePlayerNuke(gs);
+    updateNukeCollision(gs);
+    updateNukeship(gs);
+    updateNukeshipCollisions(gs);
     updateEnemies(gs);
     updateEnemyBullets(gs);
     updatePlayerBulletsCollisions(gs);
@@ -204,6 +209,7 @@ void doGraphics(State &gs) {
 
         //nuke
         if(gs.existsNuke) gs.window.draw(gs.nuke.sprite);
+        if(gs.existsNukeShip) gs.window.draw(gs.nukeship.sprite);
 
         //esplosioni
         for (const auto& exp : gs.explosions) {

@@ -21,6 +21,7 @@ Questo file contiene:
 #include "graphics/shield.hpp"
 #include "graphics/shieldCharger.hpp"
 #include "graphics/nuke.hpp"
+#include "graphics/nukeship.hpp"
 
 #include "graphics/font.hpp"
 
@@ -28,6 +29,7 @@ Questo file contiene:
 #include "sounds/playerExplosion.hpp"
 #include "sounds/shield.hpp"
 #include "sounds/shieldCharger.hpp"
+#include "sounds/nuke.hpp"
 
 
 /*----------------------------------------
@@ -295,6 +297,11 @@ State::State() :
 
         nuke_texture(nuke_png, nuke_png_len),
         nuke(nuke_texture),
+        nukeSound_buffer(nuke_mp3, nuke_mp3_len),
+        nukeSound(nukeSound_buffer),
+
+        nukeShip_texture(nukeShip_png, nukeShip_png_len),
+        nukeship(nukeShip_texture),
 
         playerBullet_texture(playerBullet_png, playerBullet_png_len),
         playerBullets_buffer(playerBullet_mp3, playerBullet_mp3_len),
@@ -430,6 +437,147 @@ void updatePlayerNuke(State& gs) {
     }  
 }
 
+
+void updateNukeCollision(State& gs) {
+    bool hitTarget = false;
+    sf::Vector2f hitPos;
+    sf::FloatRect nukeBounds = gs.nuke.sprite.getGlobalBounds();
+    
+    //impatto
+    for(auto& enemy : gs.enemies) {
+        if(enemy.isAlive) {
+            sf::FloatRect enemyBounds = enemy.sprite.getGlobalBounds();
+
+            if(nukeBounds.findIntersection(enemyBounds).has_value()) {
+                hitTarget = true;
+                hitPos = enemy.sprite.getPosition(); 
+
+                gs.nukeSound.play();
+                gs.nuke.sprite.setPosition(sf::Vector2f(0, -500));
+                gs.existsNuke = false; 
+                break; 
+            }
+        }
+    }
+
+    //area esplosione
+    if(hitTarget) {
+        float damageWidth = 500.0; //dim totali
+        float damageHeight = 260.0;
+        sf::Vector2f damagePosition(hitPos.x - (damageWidth / 2.0), hitPos.y - (damageHeight / 2.0)); //coordinate angolo alto sx dell esplosione
+        sf::Vector2f damageSize(damageWidth, damageHeight); //raggruppa le dim in un unico oggetto 
+        sf::FloatRect damageArea(damagePosition, damageSize); //unisce pos iniziale e dimensioni
+
+        int tempCounter = 0; //per far apparire solo 1 esplosione e non 3x3
+        for(auto& enemy : gs.enemies) {
+            if(enemy.isAlive) {
+                sf::FloatRect enemyBounds = enemy.sprite.getGlobalBounds();
+                if(damageArea.findIntersection(enemyBounds).has_value()) {
+                    spawnShieldCharger(gs, enemy);                    
+                    enemy.isAlive = false;
+                    gs.enemiesQuantity--; 
+                    gs.player.score += enemy.points;
+
+                    tempCounter++;
+                    if(tempCounter == 1) { 
+                        Explosion exp(gs.explosion_texture);
+                        exp.sprite.setPosition(hitPos);
+
+                        exp.sprite.setScale(sf::Vector2f(3.0, 3.0)); 
+                        gs.explosions.push_back(exp);
+                    }
+                }
+            }
+        }
+        tempCounter = 0;
+    }
+    
+    for(int i = gs.enemies.size()-1; i >= 0; i--) {
+        if(!gs.enemies[i].isAlive) {
+            gs.enemies.erase(gs.enemies.begin() + i);   
+        }
+    }
+
+    for(int i = gs.explosions.size()-1; i >= 0; i--) {
+        if(gs.explosions[i].clock.getElapsedTime().asSeconds() >= 0.2) {
+            gs.explosions.erase(gs.explosions.begin() + i);
+        }
+    }
+}
+
+
+void updateNukeship(State& gs) {
+    float distY = sf::VideoMode::getDesktopMode().size.y * 0.04; //per impostare altezza navicella + controlli sotto
+    if(!gs.existsNukeShip) {
+        float spawnProb = rand() % 10000;
+        if(spawnProb <= 1.0) { //1 su 10k frame circa
+            gs.existsNukeShip = true;
+        }
+     
+        float dirProb = rand() % 100;
+        if(dirProb <= 50) {
+            gs.nukeship.rightDirection = true;
+            gs.nukeship.sprite.setPosition(sf::Vector2f(0.0, distY));
+        }
+        else{
+            gs.nukeship.rightDirection = false;
+            gs.nukeship.sprite.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x, distY));
+        }
+        gs.nukeship.setDirection(gs.nukeship.rightDirection);
+    }
+    else {    
+        gs.nukeship.move(gs.nukeship.rightDirection);
+
+        if(!gs.nukeship.rightDirection && gs.nukeship.sprite.getPosition() == sf::Vector2f(0.0, distY)) { 
+            gs.existsNukeShip = false;
+        }
+        else if(gs.nukeship.rightDirection && gs.nukeship.sprite.getPosition() == sf::Vector2f(sf::VideoMode::getDesktopMode().size.x, distY)) {
+            gs.existsNukeShip = false;
+        }
+    }
+}
+
+
+void updateNukeshipCollisions(State& gs) {
+    if(gs.existsNukeShip) {
+        sf::FloatRect nukeshipBounds = gs.nukeship.sprite.getGlobalBounds();
+        for(auto& bullet : gs.playerBullets) {
+            sf::FloatRect playerBulletBounds = bullet.sprite.getGlobalBounds();
+            
+            if(playerBulletBounds.findIntersection(nukeshipBounds).has_value()) {
+                bullet.sprite.setPosition(sf::Vector2f(0, -500));
+                
+                Explosion exp(gs.explosion_texture);
+                exp.sprite.setPosition(gs.nukeship.sprite.getPosition());
+                exp.sprite.setScale(sf::Vector2f(0.5, 0.5));
+                gs.explosions.push_back(exp);
+                
+                gs.nukeship.lifes--;
+            }
+
+        }
+
+        sf::FloatRect nukeBounds = gs.nuke.sprite.getGlobalBounds();
+        if(gs.existsNuke && nukeBounds.findIntersection(nukeshipBounds).has_value()) {
+            Explosion exp(gs.explosion_texture);
+            exp.sprite.setPosition(gs.nuke.sprite.getPosition());
+            exp.sprite.setScale(sf::Vector2f(3.0, 3.0)); 
+            gs.explosions.push_back(exp);
+            
+            gs.nuke.sprite.setPosition(sf::Vector2f(0, -500));
+
+            gs.nukeship.lifes = 0;
+        }
+        if(gs.nukeship.lifes <= 0){
+                if(gs.player.nukes < 1) gs.player.nukes++;
+                gs.player.score += 50;
+                gs.nukeSound.play();
+
+                gs.nukeship.lifes = 3;
+                gs.existsNukeShip = false;
+        }
+    }
+}
 
 //spostamento nemici
 void updateEnemies(State& gs) {
@@ -631,7 +779,7 @@ void updateGameOver(State& gs) {
     if(!gs.enemies.empty()) {
         for(auto& enemy : gs.enemies) {
             float maxY = enemy.sprite.getPosition().y;
-            if(maxY > sf::VideoMode::getDesktopMode().size.y * 0.6) lost = true;
+            if(maxY > sf::VideoMode::getDesktopMode().size.y * 0.7) lost = true;
         }
     }
 

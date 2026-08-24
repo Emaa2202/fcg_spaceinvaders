@@ -39,7 +39,12 @@ struct State {
     sf::Texture nuke_texture;
     Nuke nuke;
     bool existsNuke = false;
+    sf::SoundBuffer nukeSound_buffer;
+    sf::Sound nukeSound;
 
+    sf::Texture nukeShip_texture;
+    Nukeship nukeship;
+    bool existsNukeShip = false;
 
 	std::vector<playerBullet> playerBullets;
     sf::Texture playerBullet_texture;
@@ -95,6 +100,9 @@ void updateEnemyBulletsCollisions(State& gs);
 void updateGameOver(State& gs);
 void updateLevel(State& gs);
 void updateShield(State& gs);
-void spawnShieldCharger(State& gs);
+void spawnShieldCharger(State& gs, Enemy enemy);
 void updateShieldCharger(State& gs);
 void updatePlayerNuke(State& gs);
+void updateNukeship(State& gs);
+void updateNukeshipCollisions(State& gs);
+void updateNukeCollision(State& gs);
