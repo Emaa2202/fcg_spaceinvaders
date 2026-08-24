@@ -1,11 +1,11 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
-
+#include <string>
 #include "state.hpp"
 
 
 /*-----------------------------------------
------Funzioni callback gestione eventi-----
+------------------Handle-------------------
 -----------------------------------------*/
 void handle(const sf::Event::Closed &, State &gs) {
     gs.window.close();
@@ -38,7 +38,6 @@ void handle(const sf::Event::MouseButtonPressed &event, State &gs) {
 }
 
 
-//resetta tutto e riporta gameOver a false, facendo ripartire l update
 void handle(const sf::Event::KeyPressed &event, State &gs) {
     if(gs.startScreen && event.code == sf::Keyboard::Key::Enter) { //inizia la partita
         gs.startScreen = false;
@@ -68,6 +67,10 @@ void handle(const sf::Event::KeyPressed &event, State &gs) {
 
     if(gs.gameOver && sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Enter)) { //riavvia
         gs.player.resetAll();
+        gs.enemies.clear();
+        gs.playerBullets.clear();
+        gs.enemyBullets.clear();
+        gs.explosions.clear();
 
         gs.gameOver = false;
         gs.gameoverTransition = false;
@@ -78,11 +81,6 @@ void handle(const sf::Event::KeyPressed &event, State &gs) {
         gs.shieldChargerReleased = false;
         gs.existsNuke = false;
         gs.existsNukeShip = false;
-
-        gs.playerBullets.clear();
-        gs.enemyBullets.clear();
-        gs.enemies.clear();
-        gs.explosions.clear();
         
         gs.initEnemies();
     }
@@ -125,11 +123,14 @@ void update(State& gs) {
         if(gs.nextLevelTransition_clock.getElapsedTime().asSeconds() >= 0.5) {
             gs.nextLevelTransition = false;
 
-            //pulisco tutto, aggiungo 1 vita e incremento contatore livelli
             gs.player.level++;
             gs.player.lifes++;
             gs.player.shields++;
             
+            gs.playerBullets.clear();
+            gs.enemyBullets.clear();
+            gs.explosions.clear();
+
             gs.isShield = false;
             gs.shieldChargerReleased = false;
             gs.existsNuke = false;
@@ -137,31 +138,16 @@ void update(State& gs) {
 
             gs.player.resetPosition();
             gs.initEnemies();
- 
-            gs.playerBullets.clear();
-            gs.enemyBullets.clear();
-            gs.explosions.clear();
-            
-            //reimposta la dir nemici a destra
-            gs.right_dir = true;
+            gs.right_dir = true; //reimposta la dir nemici a destra
 
             gs.nextLevelTransition_clock.restart();
         }
         return;
     }
 
-    updatePlayer(gs);
-    updateplayerBullets(gs);
-    updateShield(gs);
-    updateShieldCharger(gs);
-    updatePlayerNuke(gs);
-    updateNukeCollision(gs);
-    updateNukeship(gs);
-    updateNukeshipCollisions(gs);
-    updateEnemies(gs);
-    updateEnemyBullets(gs);
-    updatePlayerBulletsCollisions(gs);
-    updateEnemyBulletsCollisions(gs);
+    updateIngamePlayer(gs);
+    updateIngameEnemies(gs);
+    updateIngameNukeship(gs);   
     if(gs.player.lifes < 0) gs.ui.update(0, gs.player.score, gs.player.level, gs.player.shields); //per nascondere il -1 vite al gameOver
     else gs.ui.update(gs.player.lifes, gs.player.score, gs.player.level, gs.player.shields);
     updateLevel(gs);
@@ -212,10 +198,11 @@ void doGraphics(State &gs) {
         if(gs.existsNukeShip) gs.window.draw(gs.nukeship.sprite);
 
         //esplosioni
-        for (const auto& exp : gs.explosions) {
-            gs.window.draw(exp.sprite);
+        for(const auto& explosion : gs.explosions) {
+            gs.window.draw(explosion.sprite);
         }
-
+        
+        
         if(gs.isPaused) {
             gs.pause.draw(gs.window);
         }

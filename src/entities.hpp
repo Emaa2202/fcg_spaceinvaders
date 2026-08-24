@@ -3,8 +3,12 @@
 Questo file contiene:
     Player
     PlayerBullet
+    Shield
+    Nuke
     Enemy
     EnemyBullet
+    ShieldCharger
+    Nukeship
     Explosion
 ----------------------------------------
 --------------------------------------*/
@@ -12,25 +16,27 @@ Questo file contiene:
 #include<SFML/Audio.hpp>
 #include <vector>
 
+inline void centerOrigin(sf::Sprite& sprite) { //inline per evitare dichiarazione multipla
+    sf::FloatRect bounds = sprite.getLocalBounds();
+    sprite.setOrigin(sf::Vector2f(bounds.size.x / 2.0f, bounds.size.y / 2.0f)); 
+}
+
 
 struct Player {
-    sf::Sprite sprite;
     int lifes = 3;
     int shields = 2;
     int nukes = 0;
     int score = 0;
-    sf::Clock cooldown; //cooldown proiettili
     int level = 1;
+    sf::Sprite sprite;
+    sf::Clock cooldown; //cooldown proiettili
 
     Player(const sf::Texture& texture):  
         sprite(texture)
     {   
         //sposta origine di player al centro dello sprite
-        float player_centro_x = static_cast<float>(texture.getSize().x) / 2.0;
-        float player_centro_y = static_cast<float>(texture.getSize().y) / 2.0;
-        sprite.setOrigin(sf::Vector2f(player_centro_x, player_centro_y));    
+        centerOrigin(sprite);
         sprite.setScale(sf::Vector2f(0.3, 0.4));
-        
         sprite.setPosition(sf::Vector2f(static_cast<float>(sf::VideoMode::getDesktopMode().size.x) / 2.0, static_cast<float>(sf::VideoMode::getDesktopMode().size.y) * 0.8));    
 	    
     }
@@ -54,21 +60,45 @@ struct Player {
 
 };
 
-
 struct playerBullet {
-	float speed;
+	float speed = 45.0;
 	sf::Sprite sprite;
 
 	playerBullet(const sf::Texture& texture, sf::Vector2f pos_iniziale) :
-        sprite(texture),
-		speed(45.0)
+        sprite(texture)
 	{
-		float centro_x = static_cast<float>(texture.getSize().x) / 2.0;
-        float centro_y = static_cast<float>(texture.getSize().y) / 2.0;
-        sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
-		
+		centerOrigin(sprite);
 		sprite.setPosition(pos_iniziale);
 	}
+};
+
+
+struct Shield {
+    sf::Sprite sprite;
+    sf::Clock clock; //durata scudo
+    sf::Clock cooldown; //cooldown
+
+    Shield(const sf::Texture& texture) :
+        sprite(texture)
+    {
+        centerOrigin(sprite);
+        sprite.setScale(sf::Vector2f(0.5, 0.5));
+        sprite.setColor(sf::Color(255, 255, 255, 100)); //leggermente trasparente
+    }
+
+};
+
+
+struct Nuke {   
+    sf::Sprite sprite;
+    float speed = 15.0;
+
+    Nuke(const sf::Texture& texture) :
+        sprite(texture)
+    {
+        centerOrigin(sprite);
+        sprite.setScale(sf::Vector2f(0.5, 0.5));
+    }
 };
 
 
@@ -79,24 +109,23 @@ enum enemyType {
 };
 
 struct Enemy {
+    bool isAlive = true;
+    int points;
+    int col; //colonna per capire se puo sparare
     enemyType type;
     sf::Sprite sprite;
-    bool isAlive;
     sf::Clock enemyBullet_clock; //spostato qui per farli sparare anche assieme 
-    int col; //colonna per capire se puo sparare
-    int points;
+    sf::Clock cornometro_animaz;
 
     //animazione
-    float frameWidth;
-    float frameHeight;
+    int frameWidth;
+    int frameHeight;
     int currentFrame = 0;
-    sf::Clock cornometro_animaz;
     float sec_per_frame = 0.8;
 
     Enemy(const sf::Texture& texture, enemyType init_type, int column, sf::Vector2f pos) :
         sprite(texture),
         type(init_type),
-        isAlive(true),
         col(column)
     {
         frameWidth = texture.getSize().x / 2.0; //2 frame, dim divise per 2
@@ -104,10 +133,7 @@ struct Enemy {
 
         sprite.setTextureRect(sf::IntRect({0, 0}, {frameWidth, frameHeight})); //sprite predefinito, y sempre 0 perchè uso hpp 
 
-        float centro_x = static_cast<float>(frameWidth) / 2; //centro calcolato su singolo frame
-        float centro_y = static_cast<float>(frameHeight) / 2;
-        sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
-
+        centerOrigin(sprite);
         sprite.setPosition(pos);
 
         switch(type){
@@ -141,7 +167,7 @@ struct Enemy {
         }
     }
 
-    bool isFrontEnemy(const Enemy target, const std::vector<Enemy>& enemies) {
+    bool isFrontEnemy(const Enemy& target, const std::vector<Enemy>& enemies) {
         float targetY = target.sprite.getPosition().y;
 
         for(const auto& enemy : enemies) {
@@ -153,64 +179,27 @@ struct Enemy {
 
 };
 
-
 struct enemyBullet {
+    float speed = 15.0;
+    sf::Sprite sprite;
 	sf::Vector2f pos;
-	float speed;
-	sf::Sprite sprite;
 
 	enemyBullet(const sf::Texture& texture, sf::Vector2f pos_iniziale) :
 		pos(pos_iniziale),
-		speed(15.0),
 		sprite(texture)
 	{
-		float centro_x = static_cast<float>(texture.getSize().x) / 2.0;
-        float centro_y = static_cast<float>(texture.getSize().y) / 2.0;
-        sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
-		
+		centerOrigin(sprite);
 		sprite.setPosition(pos);
 	}
 };
 
 
-struct Explosion {
-    sf::Sprite sprite;
-    sf::Clock clock; //per far durare l'espolosione
-
-    Explosion(const sf::Texture& texture) :
-		sprite(texture)
-	{
-		float centro_x = static_cast<float>(texture.getSize().x) / 2.0;
-        float centro_y = static_cast<float>(texture.getSize().y) / 2.0;
-        sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
-	}
-};
-
-
-struct Shield {
-    sf::Sprite sprite;
-    sf::Clock clock; //durata scudo
-    sf::Clock cooldown; //cooldown
-
-    Shield(const sf::Texture& texture) :
-        sprite(texture)
-    {
-        float centro_x = static_cast<float>(texture.getSize().x) / 2.0;
-        float centro_y = static_cast<float>(texture.getSize().y) / 2.0;
-        sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
-
-        sprite.setScale(sf::Vector2f(0.5, 0.5));
-        sprite.setColor(sf::Color(255, 255, 255, 100)); //leggermente trasparente
-    }
-
-};
-
-
 struct ShieldCharger {
+    float speed = 15.0;
     sf::Sprite sprite;
 
-    float frameWidth;
-    float frameHeight;
+    int frameWidth;
+    int frameHeight;
     int currentFrame = 0;
     sf::Clock cornometro_animaz;
     float sec_per_frame = 0.2;
@@ -223,9 +212,7 @@ struct ShieldCharger {
 
         sprite.setTextureRect(sf::IntRect({0, 0}, {frameWidth, frameHeight})); //sprite predefinito, y sempre 0 perchè uso hpp 
 
-        float centro_x = static_cast<float>(frameWidth) / 2; //centro calcolato su singolo frame
-        float centro_y = static_cast<float>(frameHeight) / 2;
-        sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
+        centerOrigin(sprite);
         sprite.setScale(sf::Vector2f(0.3, 0.3));
     }
 
@@ -242,47 +229,24 @@ struct ShieldCharger {
 };
 
 
-struct Nuke {   
-    sf::Sprite sprite;
-    float speed;
-
-    Nuke(const sf::Texture& texture) :
-        sprite(texture),
-        speed(20.0)
-    {
-        float centro_x = static_cast<float>(texture.getSize().x) / 2.0;
-        float centro_y = static_cast<float>(texture.getSize().y) / 2.0;
-        sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
-
-        sprite.setScale(sf::Vector2f(0.5, 0.5));
-    }
-};
-
-
 struct Nukeship {   
     sf::Sprite sprite;
-    int lifes;
-    float speed;
-    bool rightDirection;
+    int lifes = 3;
+    float speed = 8.0;
+    bool rightDirection = true;
 
-    float frameWidth;
-    float frameHeight;
+    int frameWidth;
+    int frameHeight;
 
     Nukeship(const sf::Texture& texture) :
-        sprite(texture),
-        lifes(3),
-        speed(8.0),
-        rightDirection(true)
+        sprite(texture)
 
     {
         frameWidth = texture.getSize().x / 2.0; 
         frameHeight = texture.getSize().y;
         sprite.setTextureRect(sf::IntRect({0, 0}, {frameWidth, frameHeight})); 
         
-        float centro_x = static_cast<float>(frameWidth) / 2.0;
-        float centro_y = static_cast<float>(frameHeight) / 2.0;
-        sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
-
+        centerOrigin(sprite);
         sprite.setScale(sf::Vector2f(0.5, 0.5));
     }
 
@@ -301,4 +265,25 @@ struct Nukeship {
         if(isRight) sprite.move(sf::Vector2f(speed, 0));
         else sprite.move(sf::Vector2f(-speed, 0));
     }
+};
+
+
+struct Explosion {
+    float duration = 0.2;
+    sf::Sprite sprite;
+    sf::Clock clock; //per far durare l'espolosione
+
+    Explosion(float scale, const sf::Texture& texture, sf::Vector2f position) :
+		sprite(texture)
+	{
+		centerOrigin(sprite);
+        sprite.setPosition(position);
+        sprite.setScale(sf::Vector2f(scale, scale));
+        clock.restart();
+	}
+
+    bool isExpired() {
+        return clock.getElapsedTime().asSeconds() >= duration;
+    }
+
 };

@@ -4,6 +4,7 @@ Questo file contiene:
     Struct Start (schermata iniziale)
     Struct End (schermata finale)
     Struct Ui (punti-livello-vite)
+    Pause
 ----------------------------------------
 --------------------------------------*/
 #include <SFML/Graphics.hpp>

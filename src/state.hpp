@@ -7,102 +7,91 @@ Questo file contiene:
 --------------------------------------*/
 #include <SFML/Graphics.hpp>
 #include<SFML/Audio.hpp>
+#include <string>
 
 #include "interfaces.hpp"
 #include "entities.hpp"
-
+#include "assets.hpp"
 
 struct State {
+    Assets assets;
+
     std::string audioDir;
     sf::Music soundtrack;
-
+    
     sf::RenderWindow window;
-
-    sf::Texture background;
     sf::Sprite background_sprite;
-
-    sf::Texture player_texture;
+    
     Player player;
+        std::vector<playerBullet> playerBullets;
+        sf::Sound playerBullets_sound; 
 
-    sf::Texture shield_texture;
     Shield shield;
-    bool isShield = false; //controlla se bisogna disegnare scudo
-    sf::SoundBuffer shieldSound_buffer;
-    sf::Sound shield_sound;
-
-    sf::Texture shieldCharger_texture;
-    ShieldCharger shieldCharger;
-    bool shieldChargerReleased = false;
-    sf::SoundBuffer shieldChargerSound_buffer;
-    sf::Sound shieldChargerSound;
-
-    sf::Texture nuke_texture;
+        bool isShield = false; //controlla se bisogna disegnare scudo
+        sf::Sound shield_sound;
+    
     Nuke nuke;
-    bool existsNuke = false;
-    sf::SoundBuffer nukeSound_buffer;
-    sf::Sound nukeSound;
-
-    sf::Texture nukeShip_texture;
-    Nukeship nukeship;
-    bool existsNukeShip = false;
-
-	std::vector<playerBullet> playerBullets;
-    sf::Texture playerBullet_texture;
-    sf::SoundBuffer playerBullets_buffer;
-    sf::Sound playerBullets_sound; 
-
+        bool existsNuke = false;
+        sf::Sound nukeSound;
+    
     std::vector<Enemy> enemies;
-    int rows = 6;
-    int columns = 12;
-    sf::Texture enemy1_texture;
-    sf::Texture enemy3_texture;
-    sf::Texture enemy2_texture;
-    int enemiesQuantity; //per regolare vel nemici 
+        int rows = 6;
+        int columns = 12;
+        int enemiesQuantity; //per regolare vel nemici 
+        sf::Clock move_clock; //per spostamento nemici
+        bool right_dir = true; //direzione nemici, prima era sotto ma mi serve persistente
+        std::vector<enemyBullet> enemyBullets;
 
-    sf::Clock move_clock; //per spostamento nemici
-    bool right_dir = true; //direzione nemici, prima era sotto ma mi serve persistente
+    ShieldCharger shieldCharger;
+        bool shieldChargerReleased = false;
+        sf::Sound shieldChargerSound;
 
-    sf::Texture enemyBullet_texture;
-    std::vector<enemyBullet> enemyBullets;
+    Nukeship nukeship;
+        bool existsNukeShip = false;
 
-    sf::Texture explosion_texture;
-    sf::Sprite explosion_sprite;
     std::vector<Explosion> explosions;
-    sf::SoundBuffer playerExplosion_buffer;
-    sf::Sound playerExplosion_sound;
+        sf::Sound playerExplosion_sound;
 
-    bool gameOver = false; //per far apparirre la schermata gameover
-    bool startScreen = true;
-    bool isPaused = false;
+    Ui ui;
 
-    sf::Clock gameoverTransition_clock; //per non far apparire la schermata gameover instantaneamente
-    bool gameoverTransition = false;
+    Start start;
+        bool startScreen = true;
+
+    End end;
+        bool gameOver = false; //per far apparirre la schermata gameover
+        sf::Clock gameoverTransition_clock; //per non far apparire la schermata gameover instantaneamente
+        bool gameoverTransition = false;
+    
+    Pause pause;
+        bool isPaused = false;
 
     sf::Clock nextLevelTransition_clock; 
     bool nextLevelTransition = false;
-
-    Ui ui;
-    Start start;
-    End end;
-    Pause pause;
-
+    
     State();
     void initEnemies();
     void playMusic(const std::string& trackName);
 };
 
-void updatePlayer(State& gs);
-void updateplayerBullets(State& gs);
-void updateEnemies(State& gs);
-void updateEnemyBullets(State& gs);
-void updatePlayerBulletsCollisions(State& gs);
+void movePlayer(State& gs);
+void shootPlayerBullets(State& gs);
+void enablePlayerShield(State& gs);
+void shootPlayerNuke(State& gs);
+void updateNukeCollision(State& gs);
+void pickShieldCharger(State& gs);
 void updateEnemyBulletsCollisions(State& gs);
+
+void moveEnemies(State& gs);
+void shootEnemyBullets(State& gs);
+void updatePlayerBulletsCollisions(State& gs);
+void dropShieldCharger(State& gs, Enemy enemy); //inserita nelle collisioni
+
+void spawnNukeship(State& gs);
+void updateNukeshipCollisions(State& gs);
+
 void updateGameOver(State& gs);
 void updateLevel(State& gs);
-void updateShield(State& gs);
-void spawnShieldCharger(State& gs, Enemy enemy);
-void updateShieldCharger(State& gs);
-void updatePlayerNuke(State& gs);
-void updateNukeship(State& gs);
-void updateNukeshipCollisions(State& gs);
-void updateNukeCollision(State& gs);
+
+void updateIngamePlayer(State& gs);
+void updateIngameEnemies(State& gs);
+void updateIngameNukeship(State& gs);

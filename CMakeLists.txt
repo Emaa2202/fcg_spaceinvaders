@@ -17,7 +17,9 @@ FetchContent_MakeAvailable(SFML)
 #Eseguibile principale
 add_executable(SpaceInvaders
     src/main.cpp
-    src/stateUpdate.cpp
+    src/stateInterfaces.cpp
+    src/assets.cpp
+    src/update.cpp
 )
 target_compile_features(SpaceInvaders PRIVATE cxx_std_17)
 
