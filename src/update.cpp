@@ -276,9 +276,9 @@ void updateNukeshipCollisions(State& gs) {
 
 
 //spostamento nemici
-void moveEnemies(State& gs) {
+void moveEnemies(State& gs) {           
     float secondsToElapse = std::clamp(gs.enemiesQuantity/60.0, 0.09, 0.8); //con clamp definisco lim min e max di tempo da contare, divido per 60 come il num iniziale di nemici
-    if(gs.enemiesQuantity == 1)secondsToElapse = 0.04;
+    if(gs.enemiesQuantity == 1)secondsToElapse = 0.04; 
 
     if(gs.move_clock.getElapsedTime().asSeconds() >= secondsToElapse) {
         if(!gs.enemies.empty()) {
@@ -300,15 +300,15 @@ void moveEnemies(State& gs) {
             if(edge) {
                 gs.right_dir = !gs.right_dir;
                 for(auto& enemy : gs.enemies) {
+                     enemy.animate(); //sprite animaz
                     enemy.sprite.move(sf::Vector2f(0.0,40.0)); //nemici scendono
-                    enemy.animate(); //sprite animaz
                 }
             }
             else {
                 for(auto& enemy : gs.enemies) {
                     if(gs.right_dir) enemy.sprite.move(sf::Vector2f(dist, 0.0));
                     else enemy.sprite.move(sf::Vector2f(-dist, 0.0));
-                    enemy.animate();  
+                     enemy.animate(); //sprite animaz
                 }
             }
             gs.move_clock.restart();

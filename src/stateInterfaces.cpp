@@ -188,9 +188,10 @@ Pause::Pause() :
         title.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, (sf::VideoMode::getDesktopMode().size.y/ 2.0) * 0.5));
 
         selectedCaptionIndex = 0; //prima di default
-        for(int i = 0; i < 2; ++i) {
+        for(int i = 0; i < 3; ++i) {
             sf::Text text(font);
             if(i == 0) text.setString("Riprendi");
+            else if(i == 1) text.setString("Riavvia");
             else text.setString("Esci");
             text.setCharacterSize(128);
             
@@ -199,8 +200,9 @@ Pause::Pause() :
             
             //una sotto l'altra
             if(i == 0) text.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, sf::VideoMode::getDesktopMode().size.y/ 2.0 * 0.6 + 300));
-            else text.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, sf::VideoMode::getDesktopMode().size.y/ 2.0 * 0.6 + 450));
-            
+            else if(i == 1) text.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, sf::VideoMode::getDesktopMode().size.y/ 2.0 * 0.6 + 450));
+            else text.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, sf::VideoMode::getDesktopMode().size.y/ 2.0 * 0.6 + 600));
+
             //evidenzia
             if(i == 0) text.setFillColor(sf::Color::White);
             else text.setFillColor(sf::Color(128,128,128));
@@ -220,7 +222,7 @@ void Pause::up() {
 }
 
 void Pause::down() {
-    if(selectedCaptionIndex + 1 < 2) {
+    if(selectedCaptionIndex + 1 < 3) {
         captions[selectedCaptionIndex].setFillColor(sf::Color(128,128,128));
         selectedCaptionIndex++;
         captions[selectedCaptionIndex].setFillColor(sf::Color::White);
@@ -230,7 +232,7 @@ void Pause::down() {
 }
 
 void Pause::mouse(sf::Vector2f mousePos) {
-    for(int i =0; i < 2; i++) {
+    for(int i =0; i < 3; i++) {
         if(captions[i].getGlobalBounds().contains(mousePos)) { //se mouse è su scritta
             if(selectedCaptionIndex != i){  //se =i ignora e resta di default
                 captions[selectedCaptionIndex].setFillColor(sf::Color(128,128,128)); //scelta precedente 
@@ -327,4 +329,23 @@ void State::playMusic(const std::string& trackName) { //utilizzo playMusic 1 vol
     soundtrack.setLooping(true);
     soundtrack.setVolume(50.0);
     soundtrack.play();
+}
+
+void State::restartGame() {
+    player.resetAll();
+    enemies.clear();
+    playerBullets.clear();
+    enemyBullets.clear();
+    explosions.clear();
+
+    gameOver = false;
+    gameoverTransition = false;
+    
+    playMusic("soundtrack.mp3"); //riproduce audio con var soundtrack
+    
+    isShield = false;
+    shieldChargerReleased = false;
+    existsNuke = false;
+    existsNukeShip = false;
+    initEnemies();
 }

@@ -115,13 +115,13 @@ struct Enemy {
     enemyType type;
     sf::Sprite sprite;
     sf::Clock enemyBullet_clock; //spostato qui per farli sparare anche assieme 
-    sf::Clock cornometro_animaz;
+    sf::Clock cronometro_animaz; //al momento inutilizzato (cambia frame quando si spostano)
 
     //animazione
     int frameWidth;
     int frameHeight;
     int currentFrame = 0;
-    float sec_per_frame = 0.8;
+    float sec_per_frame;
 
     Enemy(const sf::Texture& texture, enemyType init_type, int column, sf::Vector2f pos) :
         sprite(texture),
@@ -139,23 +139,26 @@ struct Enemy {
         switch(type){
             case Type1:
                 sprite.setScale(sf::Vector2f(0.6, 0.6));
+                sec_per_frame = 0.5;
                 points = 10;
             break;
 
             case Type2:
                 sprite.setScale(sf::Vector2f(1.0, 1.0));
+                sec_per_frame = 0.5;
                 points = 15;
             break;
 
             case Type3:
                 sprite.setScale(sf::Vector2f(0.8, 0.8));
+                sec_per_frame = 0.5;
                 points = 20;
             break;
         }
     }
 
     void animate() {
-        if(cornometro_animaz.getElapsedTime().asSeconds() >= sec_per_frame) {
+        if(cronometro_animaz.getElapsedTime().asSeconds() >= sec_per_frame) {
             currentFrame = 1 - currentFrame; //alterna i frame
 
             //currentFrame = 0 ---> X = 0
@@ -163,7 +166,7 @@ struct Enemy {
             int rectX = currentFrame * frameWidth;
             sprite.setTextureRect(sf::IntRect({rectX, 0}, {frameWidth, frameHeight})); //cambio sprite
 
-            cornometro_animaz.restart();
+            cronometro_animaz.restart();
         }
     }
 

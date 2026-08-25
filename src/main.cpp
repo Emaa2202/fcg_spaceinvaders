@@ -32,7 +32,11 @@ void handle(const sf::Event::MouseButtonPressed &event, State &gs) {
                 gs.isPaused = false;
                 gs.soundtrack.play();
             } 
-            else if (gs.pause.selectedCaptionIndex == 1) gs.window.close();
+            else if(gs.pause.selectedCaptionIndex == 1) {
+                gs.isPaused = false;
+                gs.restartGame();
+            } 
+            else gs.window.close();
         }
     }
 }
@@ -61,28 +65,16 @@ void handle(const sf::Event::KeyPressed &event, State &gs) {
                 gs.isPaused = false;
                 gs.soundtrack.play();
             }
+            else if(gs.pause.selectedCaptionIndex == 1){
+                gs.isPaused = false;
+                gs.restartGame();
+            } 
             else gs.window.close();
         }
     }
 
     if(gs.gameOver && sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Enter)) { //riavvia
-        gs.player.resetAll();
-        gs.enemies.clear();
-        gs.playerBullets.clear();
-        gs.enemyBullets.clear();
-        gs.explosions.clear();
-
-        gs.gameOver = false;
-        gs.gameoverTransition = false;
-
-        gs.playMusic("soundtrack.mp3"); //riproduce audio con var soundtrack
-
-        gs.isShield = false;
-        gs.shieldChargerReleased = false;
-        gs.existsNuke = false;
-        gs.existsNukeShip = false;
-        
-        gs.initEnemies();
+        gs.restartGame();
     }
 }
 
@@ -201,7 +193,6 @@ void doGraphics(State &gs) {
         for(const auto& explosion : gs.explosions) {
             gs.window.draw(explosion.sprite);
         }
-        
         
         if(gs.isPaused) {
             gs.pause.draw(gs.window);

@@ -71,6 +71,7 @@ struct State {
     State();
     void initEnemies();
     void playMusic(const std::string& trackName);
+    void restartGame();
 };
 
 void movePlayer(State& gs);
