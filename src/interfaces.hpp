@@ -63,3 +63,20 @@ struct Pause {
     void mouse(sf::Vector2f mousePos);
     void draw(sf::RenderWindow& window);
 };
+
+
+struct Background {
+    sf::Texture texture;
+    sf::Sprite sprite;
+    
+    int frameWidth;
+    int frameHeight;
+    int currentFrame = 0;
+    float sec_per_frame = 0.4; 
+    sf::Clock anim_clock;
+
+    Background();
+    void load(const std::string& filepath, const sf::Vector2u& windowSize);
+    void animate();
+    void draw(sf::RenderWindow& window);
+};

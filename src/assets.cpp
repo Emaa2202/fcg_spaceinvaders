@@ -8,7 +8,9 @@ Questo file contiene:
 #include<SFML/Audio.hpp>
 #include "assets.hpp"
 
-#include "graphics/player.hpp" //player + sfondo
+#include "graphics/background.hpp" 
+#include "graphics/player.hpp"
+#include "graphics/playerBullet.hpp" 
 #include "graphics/enemy1.hpp"
 #include "graphics/enemy2.hpp"
 #include "graphics/enemy3.hpp"
@@ -17,7 +19,7 @@ Questo file contiene:
 #include "graphics/shield.hpp"
 #include "graphics/shieldCharger.hpp"
 #include "graphics/nuke.hpp"
-#include "graphics/nukeship.hpp"
+#include "graphics/bonusShip.hpp"
 
 #include "sounds/playerBulletSound.hpp"
 #include "sounds/playerExplosion.hpp"
@@ -47,7 +49,7 @@ Assets::Assets() :
         shieldCharger_texture(shieldCharger_png, shieldCharger_png_len),
         shieldChargerSound_buffer(shieldCharger_mp3, shieldCharger_mp3_len),
         
-        nukeShip_texture(nukeShip_png, nukeShip_png_len),
+        bonusShip_texture(bonusShip_png, bonusShip_png_len),
         
         explosion_texture(explosion_png, explosion_png_len),
         playerExplosion_buffer(playerExplosion_mp3, playerExplosion_mp3_len)    

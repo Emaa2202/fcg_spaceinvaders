@@ -50,6 +50,7 @@ void eraseEnemyBullets(State& gs) {
 ------------------------------*/
 void movePlayer(State&gs) {
     int speed = 10; //controllando a ogni frame (non piu handle) va diminuita la velocita 
+    gs.player.animate();
 
 	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A)) { //isKeyPressed invece di keyPressed per controllo tempo reale, permette di muoversi e sparare insieme
 	    gs.player.sprite.move(sf::Vector2f(-speed, 0));
@@ -207,66 +208,67 @@ void updateNukeCollision(State& gs) {
 }
 
 
-void spawnNukeship(State& gs) {
-    float distY = sf::VideoMode::getDesktopMode().size.y * 0.04; //per impostare altezza navicella + controlli sotto
-    if(!gs.existsNukeShip) {
+void spawnBonusShip(State& gs) {
+    float distY = sf::VideoMode::getDesktopMode().size.y * 0.05; //per impostare altezza navicella + controlli sotto
+    if(!gs.existsBonusShip) {
         float spawnProb = rand() % 10000;
-        if(spawnProb <= 1.0) gs.existsNukeShip = true; //1 su 10k frame circa
+        if(spawnProb <= 1.0) gs.existsBonusShip = true; //1 su 10k frame circa
      
         float dirProb = rand() % 100;
         if(dirProb <= 50) {
-            gs.nukeship.rightDirection = true;
-            gs.nukeship.sprite.setPosition(sf::Vector2f(0.0, distY));
+            gs.bonusship.rightDirection = true;
+            gs.bonusship.sprite.setPosition(sf::Vector2f(0.0, distY));
         }
         else{
-            gs.nukeship.rightDirection = false;
-            gs.nukeship.sprite.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x, distY));
+            gs.bonusship.rightDirection = false;
+            gs.bonusship.sprite.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x, distY));
         }
-        gs.nukeship.lifes = 3;
-        gs.nukeship.setDirection(gs.nukeship.rightDirection);
+        gs.bonusship.lifes = 3;
+        gs.bonusship.setDirection(gs.bonusship.rightDirection);
     }
     else {    
-        gs.nukeship.move(gs.nukeship.rightDirection);
+        gs.bonusship.move(gs.bonusship.rightDirection);
 
-        if(!gs.nukeship.rightDirection && gs.nukeship.sprite.getPosition() == sf::Vector2f(0.0, distY)) { 
-            gs.existsNukeShip = false;
+        if(!gs.bonusship.rightDirection && gs.bonusship.sprite.getPosition() == sf::Vector2f(0.0, distY)) { 
+            gs.existsBonusShip = false;
         }
-        else if(gs.nukeship.rightDirection && gs.nukeship.sprite.getPosition() == sf::Vector2f(sf::VideoMode::getDesktopMode().size.x, distY)) {
-            gs.existsNukeShip = false;
+        else if(gs.bonusship.rightDirection && gs.bonusship.sprite.getPosition() == sf::Vector2f(sf::VideoMode::getDesktopMode().size.x, distY)) {
+            gs.existsBonusShip = false;
         }
+        gs.bonusship.animate();
     }
 }
 
 
-void updateNukeshipCollisions(State& gs) {
-    if(gs.existsNukeShip) {
-        sf::FloatRect nukeshipBounds = gs.nukeship.sprite.getGlobalBounds();
+void updateBonusShipCollisions(State& gs) {
+    if(gs.existsBonusShip) {
+        sf::FloatRect bonusshipBounds = gs.bonusship.sprite.getGlobalBounds();
         for(auto& bullet : gs.playerBullets) {
             sf::FloatRect playerBulletBounds = bullet.sprite.getGlobalBounds();
             
-            if(playerBulletBounds.findIntersection(nukeshipBounds).has_value()) {
-                gs.nukeship.lifes--;
+            if(playerBulletBounds.findIntersection(bonusshipBounds).has_value()) {
+                gs.bonusship.lifes--;
                 
                 bullet.sprite.setPosition(sf::Vector2f(0, -500));
-                Explosion exp(0.5, gs.assets.explosion_texture, gs.nukeship.sprite.getPosition());
+                Explosion exp(0.5, gs.assets.explosion_texture, gs.bonusship.sprite.getPosition());
                 gs.explosions.push_back(exp);
             }
 
         }
 
-        sf::FloatRect nukeBounds = gs.nuke.sprite.getGlobalBounds();
-        if(gs.existsNuke && nukeBounds.findIntersection(nukeshipBounds).has_value()) {
-            gs.nukeship.lifes = 0;
+        sf::FloatRect bonusShipBounds = gs.nuke.sprite.getGlobalBounds();
+        if(gs.existsNuke && bonusShipBounds.findIntersection(bonusShipBounds).has_value()) {
+            gs.bonusship.lifes = 0;
 
             gs.nuke.sprite.setPosition(sf::Vector2f(0, -500));
             Explosion exp(3.0, gs.assets.explosion_texture, gs.nuke.sprite.getPosition()); 
             gs.explosions.push_back(exp);
         }
         
-        if(gs.nukeship.lifes <= 0){
+        if(gs.bonusship.lifes <= 0){
             if(gs.player.nukes < 1) gs.player.nukes++;
-            gs.nukeship.lifes = 3;
-            gs.existsNukeShip = false;
+            gs.bonusship.lifes = 3;
+            gs.existsBonusShip = false;
             gs.nukeSound.play();
 
             gs.player.score += 50;
@@ -277,6 +279,10 @@ void updateNukeshipCollisions(State& gs) {
 
 //spostamento nemici
 void moveEnemies(State& gs) {           
+    for(auto& enemy : gs.enemies) {
+        if(enemy.type == Type1 || enemy.type == Type2) enemy.animate();
+    }
+    
     float secondsToElapse = std::clamp(gs.enemiesQuantity/60.0, 0.09, 0.8); //con clamp definisco lim min e max di tempo da contare, divido per 60 come il num iniziale di nemici
     if(gs.enemiesQuantity == 1)secondsToElapse = 0.04; 
 
@@ -300,7 +306,7 @@ void moveEnemies(State& gs) {
             if(edge) {
                 gs.right_dir = !gs.right_dir;
                 for(auto& enemy : gs.enemies) {
-                     enemy.animate(); //sprite animaz
+                    if(enemy.type == Type3) enemy.animate(); //sprite animaz
                     enemy.sprite.move(sf::Vector2f(0.0,40.0)); //nemici scendono
                 }
             }
@@ -308,7 +314,7 @@ void moveEnemies(State& gs) {
                 for(auto& enemy : gs.enemies) {
                     if(gs.right_dir) enemy.sprite.move(sf::Vector2f(dist, 0.0));
                     else enemy.sprite.move(sf::Vector2f(-dist, 0.0));
-                     enemy.animate(); //sprite animaz
+                    if(enemy.type == Type3) enemy.animate(); //sprite animaz
                 }
             }
             gs.move_clock.restart();
@@ -458,7 +464,7 @@ void updateIngameEnemies(State& gs) {
     updatePlayerBulletsCollisions(gs); //colpiti da player
 }
 
-void updateIngameNukeship(State& gs) {
-    spawnNukeship(gs); //movimento 
-    updateNukeshipCollisions(gs); //colpita da player
+void updateIngameBonusShip(State& gs) {
+    spawnBonusShip(gs); //movimento 
+    updateBonusShipCollisions(gs); //colpita da player
 }

@@ -28,13 +28,24 @@ struct Player {
     int nukes = 0;
     int score = 0;
     int level = 1;
+
     sf::Sprite sprite;
     sf::Clock cooldown; //cooldown proiettili
+
+    //animazione
+    int frameWidth;
+    int frameHeight;
+    int currentFrame = 0;
+    sf::Clock cronometro_animaz;
+    float sec_per_frame = 0.1;
 
     Player(const sf::Texture& texture):  
         sprite(texture)
     {   
-        //sposta origine di player al centro dello sprite
+        frameWidth = texture.getSize().x / 3.0; //2 frame, dim divise per 2
+        frameHeight = texture.getSize().y;
+        sprite.setTextureRect(sf::IntRect({0, 0}, {frameWidth, frameHeight})); //sprite predefinito, y sempre 0 perchè uso hpp 
+        
         centerOrigin(sprite);
         sprite.setScale(sf::Vector2f(0.3, 0.4));
         sprite.setPosition(sf::Vector2f(static_cast<float>(sf::VideoMode::getDesktopMode().size.x) / 2.0, static_cast<float>(sf::VideoMode::getDesktopMode().size.y) * 0.8));    
@@ -56,6 +67,17 @@ struct Player {
 
     bool canShoot() {
         return cooldown.getElapsedTime().asSeconds() >= 0.45;
+    }
+
+    void animate() {
+        if(cronometro_animaz.getElapsedTime().asSeconds() >= sec_per_frame) {
+            currentFrame = (currentFrame + 1) % 3; 
+
+            int rectX = currentFrame * frameWidth;
+            sprite.setTextureRect(sf::IntRect({rectX, 0}, {frameWidth, frameHeight})); //cambio sprite
+
+            cronometro_animaz.restart();
+        }
     }
 
 };
@@ -97,7 +119,7 @@ struct Nuke {
         sprite(texture)
     {
         centerOrigin(sprite);
-        sprite.setScale(sf::Vector2f(0.5, 0.5));
+        sprite.setScale(sf::Vector2f(0.4, 0.5));
     }
 };
 
@@ -115,20 +137,21 @@ struct Enemy {
     enemyType type;
     sf::Sprite sprite;
     sf::Clock enemyBullet_clock; //spostato qui per farli sparare anche assieme 
-    sf::Clock cronometro_animaz; //al momento inutilizzato (cambia frame quando si spostano)
 
     //animazione
     int frameWidth;
     int frameHeight;
     int currentFrame = 0;
-    float sec_per_frame;
+    float sec_per_frame; //al momento utilizzato solo per Type1
+    sf::Clock cronometro_animaz;
 
     Enemy(const sf::Texture& texture, enemyType init_type, int column, sf::Vector2f pos) :
         sprite(texture),
         type(init_type),
         col(column)
     {
-        frameWidth = texture.getSize().x / 2.0; //2 frame, dim divise per 2
+        if(type == Type3) frameWidth = texture.getSize().x / 2.0; //2 frame, dim divise per 2
+        else frameWidth = texture.getSize().x / 3.0; 
         frameHeight = texture.getSize().y;
 
         sprite.setTextureRect(sf::IntRect({0, 0}, {frameWidth, frameHeight})); //sprite predefinito, y sempre 0 perchè uso hpp 
@@ -139,13 +162,13 @@ struct Enemy {
         switch(type){
             case Type1:
                 sprite.setScale(sf::Vector2f(0.6, 0.6));
-                sec_per_frame = 0.5;
+                sec_per_frame = 0.15;
                 points = 10;
             break;
 
             case Type2:
-                sprite.setScale(sf::Vector2f(1.0, 1.0));
-                sec_per_frame = 0.5;
+                sprite.setScale(sf::Vector2f(0.7, 0.7));
+                sec_per_frame = 0.35;
                 points = 15;
             break;
 
@@ -159,7 +182,8 @@ struct Enemy {
 
     void animate() {
         if(cronometro_animaz.getElapsedTime().asSeconds() >= sec_per_frame) {
-            currentFrame = 1 - currentFrame; //alterna i frame
+            if(type == Type3)currentFrame = 1 - currentFrame; //alterna i frame 
+            else currentFrame = (currentFrame + 1) % 3;
 
             //currentFrame = 0 ---> X = 0
             //currentFrame = 1 ---> X = frameWidth
@@ -232,7 +256,7 @@ struct ShieldCharger {
 };
 
 
-struct Nukeship {   
+struct BonusShip {   
     sf::Sprite sprite;
     int lifes = 3;
     float speed = 8.0;
@@ -240,13 +264,16 @@ struct Nukeship {
 
     int frameWidth;
     int frameHeight;
+    int currentFrame = 0;
+    sf::Clock cornometro_animaz;
+    float sec_per_frame = 0.2;
 
-    Nukeship(const sf::Texture& texture) :
+    BonusShip(const sf::Texture& texture) :
         sprite(texture)
 
     {
-        frameWidth = texture.getSize().x / 2.0; 
-        frameHeight = texture.getSize().y;
+        frameWidth = texture.getSize().x / 4.0; 
+        frameHeight = texture.getSize().y / 2.0;
         sprite.setTextureRect(sf::IntRect({0, 0}, {frameWidth, frameHeight})); 
         
         centerOrigin(sprite);
@@ -267,6 +294,20 @@ struct Nukeship {
     void move(bool isRight) {
         if(isRight) sprite.move(sf::Vector2f(speed, 0));
         else sprite.move(sf::Vector2f(-speed, 0));
+    }
+
+    void animate() {
+        if(cornometro_animaz.getElapsedTime().asSeconds() >= sec_per_frame) {
+            currentFrame = (currentFrame + 1) % 4; //alterna i frame
+
+            int rectX = currentFrame * frameWidth;
+            int rectY = 0;
+            if(!rightDirection) rectY = frameHeight;
+            
+            sprite.setTextureRect(sf::IntRect({rectX, rectY}, {frameWidth, frameHeight})); //cambio sprite
+
+            cornometro_animaz.restart();
+        }
     }
 };
 

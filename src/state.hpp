@@ -16,11 +16,11 @@ Questo file contiene:
 struct State {
     Assets assets;
 
+    std::string mediaDir;
     std::string audioDir;
     sf::Music soundtrack;
     
     sf::RenderWindow window;
-    sf::Sprite background_sprite;
     
     Player player;
         std::vector<playerBullet> playerBullets;
@@ -46,8 +46,8 @@ struct State {
         bool shieldChargerReleased = false;
         sf::Sound shieldChargerSound;
 
-    Nukeship nukeship;
-        bool existsNukeShip = false;
+    BonusShip bonusship;
+        bool existsBonusShip = false;
 
     std::vector<Explosion> explosions;
         sf::Sound playerExplosion_sound;
@@ -67,8 +67,10 @@ struct State {
 
     sf::Clock nextLevelTransition_clock; 
     bool nextLevelTransition = false;
+
+    Background background;
     
-    State();
+    State(const std::string& path_to_media);
     void initEnemies();
     void playMusic(const std::string& trackName);
     void restartGame();
@@ -87,12 +89,12 @@ void shootEnemyBullets(State& gs);
 void updatePlayerBulletsCollisions(State& gs);
 void dropShieldCharger(State& gs, Enemy enemy); //inserita nelle collisioni
 
-void spawnNukeship(State& gs);
-void updateNukeshipCollisions(State& gs);
+void spawnBonusShip(State& gs);
+void updateBonusShipCollisions(State& gs);
 
 void updateGameOver(State& gs);
 void updateLevel(State& gs);
 
 void updateIngamePlayer(State& gs);
 void updateIngameEnemies(State& gs);
-void updateIngameNukeship(State& gs);
+void updateIngameBonusShip(State& gs);

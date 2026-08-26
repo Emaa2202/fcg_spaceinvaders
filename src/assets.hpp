@@ -16,7 +16,7 @@ struct Assets {
     sf::Texture shieldCharger_texture;
     sf::SoundBuffer shieldChargerSound_buffer;
     sf::Texture nuke_texture;
-    sf::Texture nukeShip_texture;
+    sf::Texture bonusShip_texture;
     sf::Texture playerBullet_texture;
     sf::SoundBuffer playerBullets_buffer;
     sf::Texture enemy1_texture;

@@ -18,7 +18,7 @@ Start::Start() :
         title(font), 
         caption(font)
     {    
-        font.openFromMemory(font_ttf, font_ttf_len);
+        font.openFromMemory(font_ttf, font_ttf_len); //prende font embedded
 
         //titolo
         title.setString("Space Invaders");
@@ -77,6 +77,15 @@ End::End() :
         title.setFillColor(sf::Color::White);
         title.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, (sf::VideoMode::getDesktopMode().size.y/ 2.0) * 0.3));
 
+        //punti
+        finalScore.setString("Punteggio: 0");
+        finalScore.setCharacterSize(128);
+        finalScore.setFillColor(sf::Color::White);
+        
+        sf::FloatRect sbounds = finalScore.getLocalBounds();
+        finalScore.setOrigin(sf::Vector2f(sbounds.size.x / 2, sbounds.size.y / 2));
+        finalScore.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, title.getPosition().y * 2));
+
         //mex di premere invio
         caption.setString("Premi invio per giocare ancora");
         caption.setCharacterSize(64);
@@ -85,16 +94,7 @@ End::End() :
         caption.setOrigin(sf::Vector2f(cbounds.size.x / 2, cbounds.size.y / 2));
 
         caption.setFillColor(sf::Color::White);
-        caption.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, (sf::VideoMode::getDesktopMode().size.y/ 2.0) * 0.7));
-
-        //punti
-        finalScore.setString("Punteggio: 0");
-        finalScore.setCharacterSize(128);
-        finalScore.setFillColor(sf::Color::White);
-        
-        sf::FloatRect sbounds = finalScore.getLocalBounds();
-        finalScore.setOrigin(sf::Vector2f(sbounds.size.x / 2, sbounds.size.y / 2));
-        finalScore.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, (sf::VideoMode::getDesktopMode().size.y/ 2.0) * 0.5));
+        caption.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, finalScore.getPosition().y * 1.3));
 }
 
 void End::updateCaption() {
@@ -218,7 +218,10 @@ void Pause::up() {
         selectedCaptionIndex--;
         captions[selectedCaptionIndex].setFillColor(sf::Color::White);
     }
-    else down();
+    else {
+        down();
+        down();
+    }
 }
 
 void Pause::down() {
@@ -228,7 +231,10 @@ void Pause::down() {
         captions[selectedCaptionIndex].setFillColor(sf::Color::White);
 
     }
-    else up();
+    else {
+        up();
+        up();
+    } 
 }
 
 void Pause::mouse(sf::Vector2f mousePos) {
@@ -252,11 +258,52 @@ void Pause::draw(sf::RenderWindow& window) {
 
 
 /*------------------
+-----BACKGROUND-----
+-------------------*/
+Background::Background() :
+                sprite(texture) 
+            {
+
+            }
+
+void Background::load(const std::string& filepath, const sf::Vector2u& windowSize) {
+    texture.loadFromFile(filepath);
+        
+    sprite.setTexture(texture);
+        
+    frameWidth = texture.getSize().x / 5;
+    frameHeight = texture.getSize().y;
+        
+    //primo frame
+    sprite.setTextureRect(sf::IntRect({0, 0}, {frameWidth, frameHeight}));
+        
+    float scaleX = static_cast<float>(windowSize.x) / frameWidth;
+    float scaleY = static_cast<float>(windowSize.y) / frameHeight;
+    sprite.setScale(sf::Vector2f(scaleX, scaleY));
+}
+    
+void Background::animate() {
+    if(anim_clock.getElapsedTime().asSeconds() >= sec_per_frame) {
+        currentFrame = (currentFrame + 1) % 5; 
+        
+        int rectX = currentFrame * frameWidth;
+        sprite.setTextureRect(sf::IntRect({rectX, 0}, {frameWidth, frameHeight}));
+        
+        anim_clock.restart();
+    }
+}
+
+void Background::draw(sf::RenderWindow& window) {
+    window.draw(sprite);
+}
+
+
+/*------------------
 --------STATE-------
 -------------------*/
-State::State() :
+State::State(const std::string& path_to_media) :
+        mediaDir(path_to_media),
         //caricamento texture e collegamento agli sprite
-        background_sprite(assets.background),
         player(assets.player_texture),
         shield(assets.shield_texture),
         shield_sound(assets.shieldSound_buffer),
@@ -264,7 +311,7 @@ State::State() :
         shieldChargerSound(assets.shieldChargerSound_buffer),
         nuke(assets.nuke_texture),
         nukeSound(assets.nukeSound_buffer),
-        nukeship(assets.nukeShip_texture),
+        bonusship(assets.bonusShip_texture),
         playerBullets_sound(assets.playerBullets_buffer),
         playerExplosion_sound(assets.playerExplosion_buffer)
     
@@ -279,13 +326,10 @@ State::State() :
         window.create(sf::VideoMode({desktop.size.x, desktop.size.y}), "Space Invaders");
         window.setFramerateLimit(60);
 
-        //sfondo di dimensione dello schermo
-        double background_scale_x = (static_cast<float>(desktop.size.x) / assets.background.getSize().x); 
-        double background_scale_y = (static_cast<float>(desktop.size.y) / assets.background.getSize().y);
-        background_sprite.setScale(sf::Vector2f(background_scale_x, background_scale_y));
+        std::string pathSfondo = mediaDir + "/png/background.png"; 
+        background.load(pathSfondo, window.getSize());
 
-        initEnemies();        
-        
+        initEnemies();
 }
 
 //posizionamento nemici
@@ -346,6 +390,6 @@ void State::restartGame() {
     isShield = false;
     shieldChargerReleased = false;
     existsNuke = false;
-    existsNukeShip = false;
+    existsBonusShip = false;
     initEnemies();
 }

@@ -97,6 +97,7 @@ void update(State& gs) {
         return;
     }
 
+    gs.background.animate(); //se lo si mette qui e non in alto ottengo sfondo fermo 
     if(gs.gameoverTransition) {
         if(gs.gameoverTransition_clock.getElapsedTime().asSeconds() >= 0.5) {
             gs.gameoverTransition = false; //tolgo la transizione, metto true a gameOver e appare la schermata
@@ -126,7 +127,7 @@ void update(State& gs) {
             gs.isShield = false;
             gs.shieldChargerReleased = false;
             gs.existsNuke = false;
-            gs.existsNukeShip = false;
+            gs.existsBonusShip = false;
 
             gs.player.resetPosition();
             gs.initEnemies();
@@ -139,7 +140,7 @@ void update(State& gs) {
 
     updateIngamePlayer(gs);
     updateIngameEnemies(gs);
-    updateIngameNukeship(gs);   
+    updateIngameBonusShip(gs);   
     if(gs.player.lifes < 0) gs.ui.update(0, gs.player.score, gs.player.level, gs.player.shields); //per nascondere il -1 vite al gameOver
     else gs.ui.update(gs.player.lifes, gs.player.score, gs.player.level, gs.player.shields);
     updateLevel(gs);
@@ -153,7 +154,7 @@ void update(State& gs) {
 void doGraphics(State &gs) {
     //sfondo
     gs.window.clear();
-    gs.window.draw(gs.background_sprite);
+    gs.background.draw(gs.window);
     
     if(gs.startScreen) {
         gs.start.draw(gs.window);
@@ -187,7 +188,7 @@ void doGraphics(State &gs) {
 
         //nuke
         if(gs.existsNuke) gs.window.draw(gs.nuke.sprite);
-        if(gs.existsNukeShip) gs.window.draw(gs.nukeship.sprite);
+        if(gs.existsBonusShip) gs.window.draw(gs.bonusship.sprite);
 
         //esplosioni
         for(const auto& explosion : gs.explosions) {
@@ -208,12 +209,13 @@ void doGraphics(State &gs) {
 ---Main loop----
 --------------*/
 int main(int argc, char* argv[]) {
-    std::string audioDir = "./media/audio"; //se non scrivo da terminale, questo è default
-    if (argc >= 2) audioDir = argv[1];
+    std::string mediaDir = "./media"; //se non scrivo da terminale, questo è default
+    std::string audioDir = mediaDir + "/audio";
+    if (argc >= 2) mediaDir = argv[1];
     
-    State gs;
+    State gs(mediaDir);
     srand(time(NULL));
-    gs.audioDir = audioDir; //passo a state la cartella per cercare audio e usare la funzione playMusic
+    gs.audioDir = audioDir;
 
     gs.playMusic("soundtrack.mp3"); //riproduce audio con var soundtrack
     while (gs.window.isOpen()) {
