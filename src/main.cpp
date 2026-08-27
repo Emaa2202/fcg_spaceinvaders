@@ -143,6 +143,7 @@ void update(State& gs) {
     updateIngameBonusShip(gs);   
     if(gs.player.lifes < 0) gs.ui.update(0, gs.player.score, gs.player.level, gs.player.shields); //per nascondere il -1 vite al gameOver
     else gs.ui.update(gs.player.lifes, gs.player.score, gs.player.level, gs.player.shields);
+    gs.ui.updateAlert();
     updateLevel(gs);
     updateGameOver(gs);
 }
@@ -200,6 +201,7 @@ void doGraphics(State &gs) {
         }
 
         gs.ui.draw(gs.window);
+        if(gs.player.nukes == 1) gs.ui.drawAlert(gs.window);
     }
     gs.window.display();
 }

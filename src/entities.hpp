@@ -173,7 +173,7 @@ struct Enemy {
             break;
 
             case Type3:
-                sprite.setScale(sf::Vector2f(0.8, 0.8));
+                sprite.setScale(sf::Vector2f(0.7, 0.7));
                 sec_per_frame = 0.5;
                 points = 20;
             break;

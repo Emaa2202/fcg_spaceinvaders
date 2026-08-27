@@ -242,26 +242,27 @@ void spawnBonusShip(State& gs) {
 
 void updateBonusShipCollisions(State& gs) {
     if(gs.existsBonusShip) {
-        sf::FloatRect bonusshipBounds = gs.bonusship.sprite.getGlobalBounds();
+        sf::FloatRect bonusShipBounds = gs.bonusship.sprite.getGlobalBounds();
         for(auto& bullet : gs.playerBullets) {
             sf::FloatRect playerBulletBounds = bullet.sprite.getGlobalBounds();
             
-            if(playerBulletBounds.findIntersection(bonusshipBounds).has_value()) {
+            if(playerBulletBounds.findIntersection(bonusShipBounds).has_value()) {
                 gs.bonusship.lifes--;
                 
-                bullet.sprite.setPosition(sf::Vector2f(0, -500));
                 Explosion exp(0.5, gs.assets.explosion_texture, gs.bonusship.sprite.getPosition());
+                if(gs.bonusship.lifes == 0) exp.sprite.setScale(sf::Vector2f(3.0, 3.0));
+                bullet.sprite.setPosition(sf::Vector2f(0, -500));
                 gs.explosions.push_back(exp);
             }
 
         }
 
-        sf::FloatRect bonusShipBounds = gs.nuke.sprite.getGlobalBounds();
-        if(gs.existsNuke && bonusShipBounds.findIntersection(bonusShipBounds).has_value()) {
+        sf::FloatRect nukeBounds = gs.nuke.sprite.getGlobalBounds();
+        if(gs.existsNuke && nukeBounds.findIntersection(bonusShipBounds).has_value()) {
             gs.bonusship.lifes = 0;
 
-            gs.nuke.sprite.setPosition(sf::Vector2f(0, -500));
             Explosion exp(3.0, gs.assets.explosion_texture, gs.nuke.sprite.getPosition()); 
+            gs.nuke.sprite.setPosition(sf::Vector2f(0, -500));
             gs.explosions.push_back(exp);
         }
         

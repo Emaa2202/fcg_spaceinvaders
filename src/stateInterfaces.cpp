@@ -11,6 +11,7 @@ Questo file contiene:
 
 #include "state.hpp"
 #include "graphics/font.hpp"
+#include "graphics/nukeAlert.hpp"
 /*------------------
 --------START-------
 -------------------*/
@@ -79,22 +80,12 @@ End::End() :
 
         //punti
         finalScore.setString("Punteggio: 0");
-        finalScore.setCharacterSize(128);
+        finalScore.setCharacterSize(150);
         finalScore.setFillColor(sf::Color::White);
         
-        sf::FloatRect sbounds = finalScore.getLocalBounds();
-        finalScore.setOrigin(sf::Vector2f(sbounds.size.x / 2, sbounds.size.y / 2));
-        finalScore.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, title.getPosition().y * 2));
-
         //mex di premere invio
         caption.setString("Premi invio per giocare ancora");
-        caption.setCharacterSize(64);
-
-        sf::FloatRect cbounds = caption.getLocalBounds();
-        caption.setOrigin(sf::Vector2f(cbounds.size.x / 2, cbounds.size.y / 2));
-
-        caption.setFillColor(sf::Color::White);
-        caption.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, finalScore.getPosition().y * 1.3));
+        caption.setCharacterSize(50);
 }
 
 void End::updateCaption() {
@@ -108,6 +99,16 @@ void End::updateCaption() {
 
 void End::update(int playerScore) {
     finalScore.setString("Punteggio: " + std::to_string(playerScore));
+    
+    //dim e pos punti e mex invio spostati qui per centrarli dinamicamente
+    sf::FloatRect sbounds = finalScore.getLocalBounds();
+    finalScore.setOrigin(sf::Vector2f(sbounds.size.x / 2, sbounds.size.y / 2));
+    finalScore.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, title.getPosition().y * 2));
+
+    sf::FloatRect cbounds = caption.getLocalBounds();
+    caption.setOrigin(sf::Vector2f(cbounds.size.x / 2, cbounds.size.y / 2));
+    caption.setFillColor(sf::Color::White);
+    caption.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, finalScore.getPosition().y * 1.3));
 }
 
 void End::draw(sf::RenderWindow& window) {
@@ -124,7 +125,8 @@ Ui::Ui() :
         livesText(font),
         scoreText(font),
         levelText(font),
-        shieldText(font)
+        shieldText(font),
+        alert(alert_texture)
     {    
         font.openFromMemory(font_ttf, font_ttf_len);
         
@@ -132,26 +134,33 @@ Ui::Ui() :
         scoreText.setString("Punteggio: 0");
         scoreText.setCharacterSize(64);
         scoreText.setFillColor(sf::Color::White);
-        scoreText.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x * 0.01, sf::VideoMode::getDesktopMode().size.y * 0.89));
+        scoreText.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x * 0.01, sf::VideoMode::getDesktopMode().size.y * 0.89)); //position rispetto a origine, globalbounds rispetto a fone testo
         
         //vite
         livesText.setString("Vite: 3");
         livesText.setCharacterSize(64);
         livesText.setFillColor(sf::Color::White);
-        livesText.setPosition(sf::Vector2f(scoreText.getGlobalBounds().position.x + scoreText.getGlobalBounds().size.x * 1.4, sf::VideoMode::getDesktopMode().size.y * 0.89));
+        livesText.setPosition(sf::Vector2f(scoreText.getGlobalBounds().size.x * 1.7, scoreText.getPosition().y));
 
 
         //scudi
         shieldText.setString("Scudi: 2");
         shieldText.setCharacterSize(64);
         shieldText.setFillColor(sf::Color::White);
-        shieldText.setPosition(sf::Vector2f(livesText.getGlobalBounds().position.x + livesText.getGlobalBounds().size.x * 1.6, sf::VideoMode::getDesktopMode().size.y * 0.89));
+        shieldText.setPosition(sf::Vector2f(livesText.getPosition().x + livesText.getGlobalBounds().size.x * 1.5, livesText.getPosition().y));
 
         //contatore livelli
         levelText.setString("Livello: 1");
         levelText.setCharacterSize(64);
         levelText.setFillColor(sf::Color::White);
         levelText.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x * 0.85, sf::VideoMode::getDesktopMode().size.y * 0.89));
+
+        //alert colpo bonus dispinibile
+        alert_texture.loadFromMemory(nukeAlert_png, nukeAlert_png_len); 
+        alert.setTexture(alert_texture, true); //se non lo metto non appare
+        alert.setScale(sf::Vector2f(0.7, 0.7));
+        centerOrigin(alert);
+        alert.setPosition(sf::Vector2f(shieldText.getPosition().x + shieldText.getGlobalBounds().size.x * 1.5, shieldText.getGlobalBounds().position.y + shieldText.getGlobalBounds().size.y / 2.0)); //origine foto in 0,0, origine testo in alto a sx
 }
 
 void Ui::update(int playerLifes, int playerScore, int level, int shield) {
@@ -159,6 +168,19 @@ void Ui::update(int playerLifes, int playerScore, int level, int shield) {
     scoreText.setString("Punteggio: " + std::to_string(playerScore));
     levelText.setString("Livello: " + std::to_string(level));
     shieldText.setString("Scudi: " + std::to_string(shield));
+}
+
+void Ui::updateAlert() {
+    if(static_cast<int>(effect_clock.getElapsedTime().asSeconds()) % 2 == 0) {
+        alert.setColor(sf::Color::Transparent);
+    }
+    else {
+        alert.setColor(sf::Color::White);
+    }   
+}
+
+void Ui:: drawAlert(sf::RenderWindow& window) {
+    window.draw(alert);
 }
 
 void Ui:: draw(sf::RenderWindow& window) {

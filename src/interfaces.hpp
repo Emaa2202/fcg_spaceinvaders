@@ -45,8 +45,14 @@ struct Ui {
     sf::Text levelText;
     sf::Text shieldText;
 
+    sf::Texture alert_texture;
+    sf::Sprite alert;
+    sf::Clock effect_clock;
+
     Ui();
     void update(int playerLifes, int playerScore, int level, int shields);
+    void updateAlert();
+    void drawAlert(sf::RenderWindow& window);
     void draw(sf::RenderWindow& window);
 };
 
