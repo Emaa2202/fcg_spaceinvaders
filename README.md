@@ -1,7 +1,7 @@
-# Esecuzione:
+# Esecuzione
 - Scrivere dentro la cartella fcg_spaceinvaders "./build/bin/SpaceInvaders"
 
-# Comandi in-game:
+# Comandi in-game
 - Movimento: A-D
 - Sparo: Spazio
 - Scudo: LShift
