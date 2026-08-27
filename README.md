@@ -1,4 +1,5 @@
-# Esecuzione: scrivere dentro la cartella fcg_spaceinvaders "./build/bin/SpaceInvaders"
+# Esecuzione:
+- Scrivere dentro la cartella fcg_spaceinvaders "./build/bin/SpaceInvaders"
 
 # Comandi in-game:
 - Movimento: A-D
