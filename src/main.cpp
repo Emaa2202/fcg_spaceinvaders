@@ -212,8 +212,8 @@ void doGraphics(State &gs) {
 --------------*/
 int main(int argc, char* argv[]) {
     std::string mediaDir = "./media"; //se non scrivo da terminale, questo è default
-    std::string audioDir = mediaDir + "/audio";
     if (argc >= 2) mediaDir = argv[1];
+    std::string audioDir = mediaDir + "/audio";
     
     State gs(mediaDir);
     srand(time(NULL));
