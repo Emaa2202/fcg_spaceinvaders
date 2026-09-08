@@ -52,6 +52,27 @@ struct Player {
 	    
     }
 
+    void move() {
+        sf::Vector2u windowSize = sf::VideoMode::getDesktopMode().size;
+        int speed = 10; //controllando a ogni frame (non piu handle) va diminuita la velocita 
+        animate();
+
+	    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A)) { //isKeyPressed invece di keyPressed per controllo tempo reale, permette di muoversi e sparare insieme
+	        sprite.move(sf::Vector2f(-speed, 0));
+	    }
+	    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D)) {
+	    	sprite.move(sf::Vector2f(speed, 0));
+	    }
+
+        sf::Vector2f pos = sprite.getPosition();
+        float half_width = sprite.getGlobalBounds().size.x / 2.0;
+        float min_x = half_width; 
+        float max_x = static_cast<float>(windowSize.x) - half_width;
+
+        pos.x = std::clamp(pos.x, min_x, max_x); //costringe posx ad essere compresa tra min e max
+        sprite.setPosition(pos);
+    }
+
     void resetPosition() {
         sprite.setPosition(sf::Vector2f(static_cast<float>(sf::VideoMode::getDesktopMode().size.x) / 2.0, static_cast<float>(sf::VideoMode::getDesktopMode().size.y) * 0.8)); 
     }
@@ -107,7 +128,6 @@ struct Shield {
         sprite.setScale(sf::Vector2f(0.5, 0.5));
         sprite.setColor(sf::Color(255, 255, 255, 100)); //leggermente trasparente
     }
-
 };
 
 
@@ -224,6 +244,7 @@ struct enemyBullet {
 struct ShieldCharger {
     float speed = 15.0;
     sf::Sprite sprite;
+    bool isReleased = false;
 
     int frameWidth;
     int frameHeight;
@@ -241,6 +262,15 @@ struct ShieldCharger {
 
         centerOrigin(sprite);
         sprite.setScale(sf::Vector2f(0.3, 0.3));
+    }
+
+    //per gestire gli scudi bonus (ausiliaria di updatePlayerBulletsCollisions in update)
+    void drop(Enemy& enemy) {
+        float prob = rand() % 10000;
+        if(prob <= 3.0 && !isReleased) {
+            isReleased = true;
+            sprite.setPosition(enemy.sprite.getPosition());
+        }
     }
 
     void animate() {
@@ -261,6 +291,7 @@ struct BonusShip {
     int lifes = 3;
     float speed = 8.0;
     bool rightDirection = true;
+    bool exists = false; //per capire se disegnarla
 
     int frameWidth;
     int frameHeight;
@@ -278,6 +309,37 @@ struct BonusShip {
         
         centerOrigin(sprite);
         sprite.setScale(sf::Vector2f(0.5, 0.5));
+    }
+
+    void spawn() {
+        float distY = sf::VideoMode::getDesktopMode().size.y * 0.05; //per impostare altezza navicella + controlli sotto
+        if(!exists) {
+            float spawnProb = rand() % 10000;
+            if(spawnProb <= 1.0) exists = true; //1 su 10k frame circa
+        
+            float dirProb = rand() % 100;
+            if(dirProb <= 50) {
+                rightDirection = true;
+                sprite.setPosition(sf::Vector2f(0.0, distY));
+            }
+            else{
+                rightDirection = false;
+                sprite.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x, distY));
+            }
+            lifes = 3;
+            setDirection(rightDirection);
+        }
+        else {    
+            move(rightDirection);
+
+            if(!rightDirection && sprite.getPosition() == sf::Vector2f(0.0, distY)) { 
+                exists = false;
+            }
+            else if(rightDirection && sprite.getPosition() == sf::Vector2f(sf::VideoMode::getDesktopMode().size.x, distY)) {
+                exists = false;
+            }
+            animate();
+        }
     }
 
     void setDirection(bool isRight) {

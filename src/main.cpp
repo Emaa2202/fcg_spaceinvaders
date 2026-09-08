@@ -96,7 +96,7 @@ void update(State& gs) {
         return;
     }
 
-    gs.background.animate(); //se lo si mette qui e non in alto ottengo sfondo fermo 
+    gs.background.animate(); //se lo si mette qui e non in alto non ottengo sfondo fermo 
     
     if(updateTransitions(gs)) {
         return;
@@ -132,7 +132,7 @@ void doGraphics(State &gs) {
             gs.window.draw(enemyBullet.sprite);
         }
 
-        if(gs.shieldChargerReleased) gs.window.draw(gs.shieldCharger.sprite);
+        if(gs.shieldCharger.isReleased) gs.window.draw(gs.shieldCharger.sprite);
 
         //nemici
 	    for (const auto& enemy : gs.enemies) {
@@ -156,7 +156,7 @@ void doGraphics(State &gs) {
 
         //nuke
         if(gs.existsNuke) gs.window.draw(gs.nuke.sprite);
-        if(gs.existsBonusShip) gs.window.draw(gs.bonusship.sprite);
+        if(gs.bonusship.exists) gs.window.draw(gs.bonusship.sprite);
 
         //esplosioni
         for(const auto& explosion : gs.explosions) {

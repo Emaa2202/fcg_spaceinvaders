@@ -12,63 +12,9 @@ Questo file contiene:
 #include "state.hpp"
 
 
-/*-----------------------------------------------------
-----Ausiliarie per eliminare esplosioni e proiettili---
------------------------------------------------------*/
-void expireExplosions(State& gs) {
-    for(int i = gs.explosions.size()-1; i >= 0; i--) {
-        if(gs.explosions[i].clock.getElapsedTime().asSeconds() >= gs.explosions[i].duration) {
-            gs.explosions.erase(gs.explosions.begin() + i);
-        }
-    }
-}
-
-void eraseEnemies(State& gs) {
-    for(int i = gs.enemies.size()-1; i >= 0; i--) {
-        if(!gs.enemies[i].isAlive) {
-            gs.enemies.erase(gs.enemies.begin() + i);   
-        }
-    }
-}
-    
-void erasePlayerBullets(State& gs) {    
-    for(int i = gs.playerBullets.size() -1; i >= 0; i--) {
-        if(gs.playerBullets[i].sprite.getPosition().y < 0.0) gs.playerBullets.erase(gs.playerBullets.begin() + i);
-    }
-}
-
-
-void eraseEnemyBullets(State& gs) {
-    for(int i = gs.enemyBullets.size()-1; i >= 0; i--) { //messo indici al contrario perchè nell altro modo gli elem scalano di una pos
-        if(gs.enemyBullets[i].pos.y < 0.0) gs.enemyBullets.erase(gs.enemyBullets.begin() + i);
-    }
-}
-
-
 /*-----------------------------
 -------------Update------------
 ------------------------------*/
-void movePlayer(State&gs) {
-    int speed = 10; //controllando a ogni frame (non piu handle) va diminuita la velocita 
-    gs.player.animate();
-
-	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A)) { //isKeyPressed invece di keyPressed per controllo tempo reale, permette di muoversi e sparare insieme
-	    gs.player.sprite.move(sf::Vector2f(-speed, 0));
-	}
-	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D)) {
-		gs.player.sprite.move(sf::Vector2f(speed, 0));
-	}
-
-    sf::Vector2f pos = gs.player.sprite.getPosition();
-    float half_width = (gs.assets.player_texture.getSize().x * gs.player.sprite.getScale().x) / 2.0;
-    float min_x = half_width; 
-    float max_x = static_cast<float>(gs.window.getSize().x) - half_width;
-
-    pos.x = std::clamp(pos.x, min_x, max_x); //costringe posx ad essere compresa tra min e max
-    gs.player.sprite.setPosition(pos);
-}
-
-
 void shootPlayerBullets(State& gs) {
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Space)) {
         if(gs.player.canShoot()) {
@@ -84,7 +30,7 @@ void shootPlayerBullets(State& gs) {
 }
 
 
-//collisioni proiettile giocatore
+//nemici colpiti da giocatore
 void updatePlayerBulletsCollisions(State& gs) { 
     for(auto& playerBullet : gs.playerBullets) {
         sf::FloatRect playerBulletBounds = playerBullet.sprite.getGlobalBounds();
@@ -96,7 +42,7 @@ void updatePlayerBulletsCollisions(State& gs) {
                 if(playerBulletBounds.findIntersection(enemyBounds).has_value()) {
                     gs.floatingTexts.push_back(FloatingText(gs.start.font, "+" + std::to_string(enemy.points), enemy.sprite.getPosition()));
                     
-                    dropShieldCharger(gs, enemy);
+                    gs.shieldCharger.drop(enemy);
                     enemy.isAlive = false;
                     gs.player.score += enemy.points;
 
@@ -112,9 +58,9 @@ void updatePlayerBulletsCollisions(State& gs) {
     
     }
     
-    eraseEnemies(gs);
-    erasePlayerBullets(gs);
-    expireExplosions(gs);
+    gs.eraseEnemies();
+    gs.erasePlayerBullets();
+    gs.expireExplosions();
 }
 
 
@@ -189,7 +135,7 @@ void updateNukeCollision(State& gs) {
                 sf::FloatRect enemyBounds = enemy.sprite.getGlobalBounds();
                 if(damageArea.findIntersection(enemyBounds).has_value()) {
                     gs.floatingTexts.push_back(FloatingText(gs.start.font, "+" + std::to_string(enemy.points), enemy.sprite.getPosition()));
-                    dropShieldCharger(gs, enemy);                    
+                    gs.shieldCharger.drop(enemy);                    
                     enemy.isAlive = false;
                     gs.player.score += enemy.points;
 
@@ -204,45 +150,13 @@ void updateNukeCollision(State& gs) {
         tempCounter = 0;
     }
     
-    eraseEnemies(gs);
-    expireExplosions(gs);
-}
-
-
-void spawnBonusShip(State& gs) {
-    float distY = sf::VideoMode::getDesktopMode().size.y * 0.05; //per impostare altezza navicella + controlli sotto
-    if(!gs.existsBonusShip) {
-        float spawnProb = rand() % 10000;
-        if(spawnProb <= 1.0) gs.existsBonusShip = true; //1 su 10k frame circa
-     
-        float dirProb = rand() % 100;
-        if(dirProb <= 50) {
-            gs.bonusship.rightDirection = true;
-            gs.bonusship.sprite.setPosition(sf::Vector2f(0.0, distY));
-        }
-        else{
-            gs.bonusship.rightDirection = false;
-            gs.bonusship.sprite.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x, distY));
-        }
-        gs.bonusship.lifes = 3;
-        gs.bonusship.setDirection(gs.bonusship.rightDirection);
-    }
-    else {    
-        gs.bonusship.move(gs.bonusship.rightDirection);
-
-        if(!gs.bonusship.rightDirection && gs.bonusship.sprite.getPosition() == sf::Vector2f(0.0, distY)) { 
-            gs.existsBonusShip = false;
-        }
-        else if(gs.bonusship.rightDirection && gs.bonusship.sprite.getPosition() == sf::Vector2f(sf::VideoMode::getDesktopMode().size.x, distY)) {
-            gs.existsBonusShip = false;
-        }
-        gs.bonusship.animate();
-    }
+    gs.eraseEnemies();
+    gs.expireExplosions();
 }
 
 
 void updateBonusShipCollisions(State& gs) { //nave colpita
-    if(gs.existsBonusShip) {
+    if(gs.bonusship.exists) {
         sf::FloatRect bonusShipBounds = gs.bonusship.sprite.getGlobalBounds();
         for(auto& bullet : gs.playerBullets) {
             sf::FloatRect playerBulletBounds = bullet.sprite.getGlobalBounds();
@@ -270,7 +184,7 @@ void updateBonusShipCollisions(State& gs) { //nave colpita
         if(gs.bonusship.lifes <= 0){
             if(gs.player.nukes < 1) gs.player.nukes++;
             gs.bonusship.lifes = 3;
-            gs.existsBonusShip = false;
+            gs.bonusship.exists = false;
             gs.nukeSound.play();
             
             gs.floatingTexts.push_back(FloatingText(gs.start.font, "NUKE +1 \n+" + std::to_string(50), gs.bonusship.sprite.getPosition() + sf::Vector2f(0.0, +80.0)));
@@ -385,23 +299,13 @@ void updateEnemyBulletsCollisions(State& gs) {
         }
     }
 
-    eraseEnemyBullets(gs);
-    expireExplosions(gs);
-}
-
-
-//per gestire gli scudi bonus (ausiliaria di updatePlayerBulletsCollisions)
-void dropShieldCharger(State& gs, Enemy& enemy) {
-    float prob = rand() % 100;
-    if(prob <= 3.0 && !gs.shieldChargerReleased) {
-        gs.shieldChargerReleased = true;
-        gs.shieldCharger.sprite.setPosition(enemy.sprite.getPosition());
-    }
+    gs.eraseEnemyBullets();
+    gs.expireExplosions();
 }
 
 
 void pickShieldCharger(State& gs) {
-    if(gs.shieldChargerReleased) {
+    if(gs.shieldCharger.isReleased) {
         gs.shieldCharger.animate();
         gs.shieldCharger.sprite.move(sf::Vector2f(0, gs.shieldCharger.speed));
 
@@ -412,18 +316,18 @@ void pickShieldCharger(State& gs) {
             
             gs.shieldChargerSound.play();
             gs.shieldCharger.sprite.setPosition(sf::Vector2f(0, -500));
-            gs.shieldChargerReleased = false;
+            gs.shieldCharger.isReleased = false;
         }
 
         else if(gs.shieldCharger.sprite.getPosition().y >= sf::VideoMode::getDesktopMode().size.y) {
-            gs.shieldChargerReleased = false;
+            gs.shieldCharger.isReleased = false;
         }
     }
 }
 
 
 void updateIngamePlayer(State& gs) {
-    movePlayer(gs); //movimento
+    gs.player.move();
     shootPlayerBullets(gs); //spara
     enablePlayerShield(gs); //scudi
     shootPlayerNuke(gs); //colpo bonus
@@ -439,7 +343,7 @@ void updateIngameEnemies(State& gs) {
 }
 
 void updateIngameBonusShip(State& gs) {
-    spawnBonusShip(gs); //movimento 
+    gs.bonusship.spawn(); //movimento 
     updateBonusShipCollisions(gs); //colpita da player
 }
 
@@ -456,7 +360,7 @@ bool updateTransitions(State& gs) {
             gs.playerBullets.clear();
             
             //aggiorna qui schermata di gameover per evitare compaia durante la transizione
-            gs.end.update(gs.player.score); //basta aggiornarlo al gameover
+            gs.end.update(gs.player.score); //basta aggiornarlo al gameover e non di continuo
             gs.end.updateCaption();
         }
         return true; //con true blocca gameplay
@@ -476,9 +380,9 @@ bool updateTransitions(State& gs) {
             gs.explosions.clear();
 
             gs.isShield = false;
-            gs.shieldChargerReleased = false;
+            gs.shieldCharger.isReleased = false;
             gs.existsNuke = false;
-            gs.existsBonusShip = false;
+            gs.bonusship.exists = false;
 
             gs.player.resetPosition();
             gs.initEnemies();

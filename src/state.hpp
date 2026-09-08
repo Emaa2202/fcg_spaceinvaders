@@ -42,11 +42,9 @@ struct State {
         std::vector<enemyBullet> enemyBullets;
 
     ShieldCharger shieldCharger;
-        bool shieldChargerReleased = false;
         sf::Sound shieldChargerSound;
 
     BonusShip bonusship;
-        bool existsBonusShip = false;
 
     std::vector<Explosion> explosions;
         sf::Sound playerExplosion_sound;
@@ -75,6 +73,11 @@ struct State {
     void initEnemies();
     void playMusic(const std::string& trackName);
     void restartGame();
+
+    void eraseEnemyBullets();
+    void eraseEnemies();
+    void expireExplosions();
+    void erasePlayerBullets();
 };
 
 void movePlayer(State& gs);

@@ -425,6 +425,38 @@ void State::initEnemies() {
     }
 }
 
+
+//ausiliarie per eliminare esplosioni e proiettili
+void State::expireExplosions() {
+    for(int i = explosions.size()-1; i >= 0; i--) {
+        if(explosions[i].clock.getElapsedTime().asSeconds() >= explosions[i].duration) {
+            explosions.erase(explosions.begin() + i);
+        }
+    }
+}
+
+void State::eraseEnemies() {
+    for(int i = enemies.size()-1; i >= 0; i--) {
+        if(!enemies[i].isAlive) {
+            enemies.erase(enemies.begin() + i);   
+        }
+    }
+}
+    
+void State::erasePlayerBullets() {    
+    for(int i = playerBullets.size() -1; i >= 0; i--) {
+        if(playerBullets[i].sprite.getPosition().y < 0.0) playerBullets.erase(playerBullets.begin() + i);
+    }
+}
+
+
+void State::eraseEnemyBullets() {
+    for(int i = enemyBullets.size()-1; i >= 0; i--) { //messo indici al contrario perchè nell altro modo gli elem scalano di una pos
+        if(enemyBullets[i].pos.y < 0.0) enemyBullets.erase(enemyBullets.begin() + i);
+    }
+}
+
+
 void State::playMusic(const std::string& trackName) { //utilizzo playMusic 1 volta nel main, 1 volta al restart e al gameover faccio soundtrack.stop()
     std::string path = audioDir + "/" + trackName;
     soundtrack.openFromFile(path);
@@ -447,9 +479,9 @@ void State::restartGame() {
     playMusic("soundtrack.mp3"); //riproduce audio con var soundtrack
     
     isShield = false;
-    shieldChargerReleased = false;
+    shieldCharger.isReleased = false;
     existsNuke = false;
-    existsBonusShip = false;
+    bonusship.exists = false;
 
     move_clock.restart(); //resetta clock velocita enemies
     initEnemies();
