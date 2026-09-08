@@ -88,7 +88,6 @@ void update(State& gs) {
         return;
     }
     else if(gs.gameOver) {
-        gs.end.update(gs.player.score);
         gs.end.updateCaption();
         return;
     }
@@ -98,43 +97,8 @@ void update(State& gs) {
     }
 
     gs.background.animate(); //se lo si mette qui e non in alto ottengo sfondo fermo 
-    if(gs.gameoverTransition) {
-        if(gs.gameoverTransition_clock.getElapsedTime().asSeconds() >= 0.5) {
-            gs.gameoverTransition = false; //tolgo la transizione, metto true a gameOver e appare la schermata
-            gs.gameOver = true; 
-            
-            gs.soundtrack.stop();
-
-            gs.explosions.clear();
-            gs.enemyBullets.clear();
-            gs.playerBullets.clear();
-        }
-        return; 
-    }
-
-    if(gs.nextLevelTransition) {
-        if(gs.nextLevelTransition_clock.getElapsedTime().asSeconds() >= 0.5) {
-            gs.nextLevelTransition = false;
-
-            gs.player.level++;
-            gs.player.lifes++;
-            gs.player.shields++;
-            
-            gs.playerBullets.clear();
-            gs.enemyBullets.clear();
-            gs.explosions.clear();
-
-            gs.isShield = false;
-            gs.shieldChargerReleased = false;
-            gs.existsNuke = false;
-            gs.existsBonusShip = false;
-
-            gs.player.resetPosition();
-            gs.initEnemies();
-            gs.right_dir = true; //reimposta la dir nemici a destra
-
-            gs.nextLevelTransition_clock.restart();
-        }
+    
+    if(updateTransitions(gs)) {
         return;
     }
 
@@ -144,8 +108,7 @@ void update(State& gs) {
     if(gs.player.lifes < 0) gs.ui.update(0, gs.player.score, gs.player.level, gs.player.shields); //per nascondere il -1 vite al gameOver
     else gs.ui.update(gs.player.lifes, gs.player.score, gs.player.level, gs.player.shields);
     gs.ui.updateAlert();
-    updateLevel(gs);
-    updateGameOver(gs);
+    updateFloatingTexts(gs);
 }
 
 
@@ -180,6 +143,10 @@ void doGraphics(State &gs) {
 	    for (const auto& playerBullet : gs.playerBullets) {
             gs.window.draw(playerBullet.sprite);
         }
+
+        for(auto& ft : gs.floatingTexts) {
+            ft.draw(gs.window); 
+        }   
 
         //giocatore
         gs.window.draw(gs.player.sprite);

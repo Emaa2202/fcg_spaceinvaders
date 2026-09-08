@@ -37,7 +37,6 @@ struct State {
     std::vector<Enemy> enemies;
         int rows = 6;
         int columns = 12;
-        int enemiesQuantity; //per regolare vel nemici 
         sf::Clock move_clock; //per spostamento nemici
         bool right_dir = true; //direzione nemici, prima era sotto ma mi serve persistente
         std::vector<enemyBullet> enemyBullets;
@@ -70,6 +69,8 @@ struct State {
 
     Background background;
     
+    std::vector<FloatingText> floatingTexts;
+
     State(const std::string& path_to_media);
     void initEnemies();
     void playMusic(const std::string& trackName);
@@ -87,14 +88,15 @@ void updateEnemyBulletsCollisions(State& gs);
 void moveEnemies(State& gs);
 void shootEnemyBullets(State& gs);
 void updatePlayerBulletsCollisions(State& gs);
-void dropShieldCharger(State& gs, Enemy enemy); //inserita nelle collisioni
+void dropShieldCharger(State& gs, Enemy& enemy); //inserita nelle collisioni
 
 void spawnBonusShip(State& gs);
 void updateBonusShipCollisions(State& gs);
 
-void updateGameOver(State& gs);
-void updateLevel(State& gs);
+bool updateTransitions(State& gs);
 
 void updateIngamePlayer(State& gs);
 void updateIngameEnemies(State& gs);
 void updateIngameBonusShip(State& gs);
+
+void updateFloatingTexts(State& gs);

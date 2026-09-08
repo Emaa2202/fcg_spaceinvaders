@@ -18,7 +18,7 @@ Questo file contiene:
 
 inline void centerOrigin(sf::Sprite& sprite) { //inline per evitare dichiarazione multipla
     sf::FloatRect bounds = sprite.getLocalBounds();
-    sprite.setOrigin(sf::Vector2f(bounds.size.x / 2.0f, bounds.size.y / 2.0f)); 
+    sprite.setOrigin(sf::Vector2f(bounds.size.x / 2.0, bounds.size.y / 2.0)); 
 }
 
 

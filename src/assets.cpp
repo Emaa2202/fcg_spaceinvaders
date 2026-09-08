@@ -52,6 +52,6 @@ Assets::Assets() :
         bonusShip_texture(bonusShip_png, bonusShip_png_len),
         
         explosion_texture(explosion_png, explosion_png_len),
-        playerExplosion_buffer(playerExplosion_mp3, playerExplosion_mp3_len)    
+        playerExplosion_buffer(playerExplosion_mp3, playerExplosion_mp3_len)
     {
 }

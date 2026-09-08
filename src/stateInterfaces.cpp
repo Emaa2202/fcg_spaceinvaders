@@ -320,6 +320,45 @@ void Background::draw(sf::RenderWindow& window) {
 }
 
 
+/*--------------
+--FloatingText--
+--------------*/
+FloatingText::FloatingText(const sf::Font& font, const std::string& str, sf::Vector2f pos) :
+    text(font)
+{
+    text.setString(str);
+    text.setFillColor(sf::Color(255, 0, 0));
+    text.setCharacterSize(36);
+
+    sf::FloatRect bounds = text.getLocalBounds();
+    text.setOrigin(sf::Vector2f(bounds.position.x + bounds.size.x / 2.0f, bounds.position.y + bounds.size.y / 2.0f));
+    text.setPosition(pos);
+}
+
+bool FloatingText::expired() {
+    return clock.getElapsedTime().asSeconds() >= duration;
+}
+
+void FloatingText::animate() {
+    float elapsed = clock.getElapsedTime().asSeconds();
+    
+    //sposta verso alto
+    text.move(sf::Vector2f(0.0, -2.0)); 
+
+    //fade-out
+    float alphaRatio = 1.0 - (elapsed / duration); //calcola trasparenza es: elapsed/duration=0.5 allora 1-0.5
+    if(alphaRatio < 0.0) alphaRatio = 0.0; //evita val neg
+    
+    sf::Color color = text.getFillColor();
+    color.a = static_cast<std::uint8_t>(255 * alphaRatio); //modifica trasparenza canale alfa rgba
+    text.setFillColor(color);
+}
+
+void FloatingText::draw(sf::RenderWindow& window) {
+    window.draw(text);
+}
+
+
 /*------------------
 --------STATE-------
 -------------------*/
@@ -384,8 +423,6 @@ void State::initEnemies() {
             }
         }
     }
-
-    enemiesQuantity = enemies.size(); //inizializza contatore nemici
 }
 
 void State::playMusic(const std::string& trackName) { //utilizzo playMusic 1 volta nel main, 1 volta al restart e al gameover faccio soundtrack.stop()
@@ -413,5 +450,7 @@ void State::restartGame() {
     shieldChargerReleased = false;
     existsNuke = false;
     existsBonusShip = false;
+
+    move_clock.restart(); //resetta clock velocita enemies
     initEnemies();
 }

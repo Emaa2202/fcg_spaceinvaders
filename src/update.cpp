@@ -94,9 +94,10 @@ void updatePlayerBulletsCollisions(State& gs) {
                 sf::FloatRect enemyBounds = enemy.sprite.getGlobalBounds();
                 
                 if(playerBulletBounds.findIntersection(enemyBounds).has_value()) {
+                    gs.floatingTexts.push_back(FloatingText(gs.start.font, "+" + std::to_string(enemy.points), enemy.sprite.getPosition()));
+                    
                     dropShieldCharger(gs, enemy);
                     enemy.isAlive = false;
-                    gs.enemiesQuantity--; //decrementa contatore nemici
                     gs.player.score += enemy.points;
 
                     Explosion exp(0.5, gs.assets.explosion_texture, enemy.sprite.getPosition());
@@ -187,9 +188,9 @@ void updateNukeCollision(State& gs) {
             if(enemy.isAlive) {
                 sf::FloatRect enemyBounds = enemy.sprite.getGlobalBounds();
                 if(damageArea.findIntersection(enemyBounds).has_value()) {
+                    gs.floatingTexts.push_back(FloatingText(gs.start.font, "+" + std::to_string(enemy.points), enemy.sprite.getPosition()));
                     dropShieldCharger(gs, enemy);                    
                     enemy.isAlive = false;
-                    gs.enemiesQuantity--; 
                     gs.player.score += enemy.points;
 
                     tempCounter++;
@@ -240,7 +241,7 @@ void spawnBonusShip(State& gs) {
 }
 
 
-void updateBonusShipCollisions(State& gs) {
+void updateBonusShipCollisions(State& gs) { //nave colpita
     if(gs.existsBonusShip) {
         sf::FloatRect bonusShipBounds = gs.bonusship.sprite.getGlobalBounds();
         for(auto& bullet : gs.playerBullets) {
@@ -271,7 +272,8 @@ void updateBonusShipCollisions(State& gs) {
             gs.bonusship.lifes = 3;
             gs.existsBonusShip = false;
             gs.nukeSound.play();
-
+            
+            gs.floatingTexts.push_back(FloatingText(gs.start.font, "NUKE +1 \n+" + std::to_string(50), gs.bonusship.sprite.getPosition() + sf::Vector2f(0.0, +80.0)));
             gs.player.score += 50;
         }
     }
@@ -284,12 +286,12 @@ void moveEnemies(State& gs) {
         if(enemy.type == Type1 || enemy.type == Type2) enemy.animate();
     }
     
-    float secondsToElapse = std::clamp(gs.enemiesQuantity/60.0, 0.09, 0.8); //con clamp definisco lim min e max di tempo da contare, divido per 60 come il num iniziale di nemici
-    if(gs.enemiesQuantity == 1)secondsToElapse = 0.04; 
+    float secondsToElapse = std::clamp(gs.enemies.size()/60.0, 0.09, 1.0); //con clamp definisco lim min e max di tempo da contare, divido per 60 come il num iniziale di nemici
+    if(gs.enemies.size() == 1)secondsToElapse = 0.04; 
 
     if(gs.move_clock.getElapsedTime().asSeconds() >= secondsToElapse) {
         if(!gs.enemies.empty()) {
-            float dist = std::clamp(3000.0 / gs.enemiesQuantity, 70.0, 80.0); //con clamp definisco lim min e max di tempo da contare
+            float dist = std::clamp(3000.0 / gs.enemies.size(), 70.0, 80.0); //con clamp definisco lim min e max di tempo da contare
             bool edge = false;
 
             float minX = gs.enemies[0].sprite.getPosition().x; //trova estremi
@@ -389,7 +391,7 @@ void updateEnemyBulletsCollisions(State& gs) {
 
 
 //per gestire gli scudi bonus (ausiliaria di updatePlayerBulletsCollisions)
-void dropShieldCharger(State& gs, Enemy enemy) {
+void dropShieldCharger(State& gs, Enemy& enemy) {
     float prob = rand() % 100;
     if(prob <= 3.0 && !gs.shieldChargerReleased) {
         gs.shieldChargerReleased = true;
@@ -420,35 +422,6 @@ void pickShieldCharger(State& gs) {
 }
 
 
-void updateGameOver(State& gs) {
-    bool lost = false;
-    
-    //se i nemici si avvicinano troppo
-    if(!gs.enemies.empty()) {
-        for(auto& enemy : gs.enemies) {
-            float maxY = enemy.sprite.getPosition().y;
-            if(maxY > sf::VideoMode::getDesktopMode().size.y * 0.7) lost = true;
-        }
-    }
-    if(gs.player.lifes < 0){
-        lost = true;
-    }
-    if(lost) {
-        gs.gameoverTransition = true;
-        gs.gameoverTransition_clock.restart(); 
-    }
-
-}
-
-
-void updateLevel(State& gs) {
-    if(gs.enemies.empty() && !gs.nextLevelTransition) {
-        gs.nextLevelTransition = true;
-        gs.nextLevelTransition_clock.restart(); 
-    }
-}
-
-
 void updateIngamePlayer(State& gs) {
     movePlayer(gs); //movimento
     shootPlayerBullets(gs); //spara
@@ -468,4 +441,91 @@ void updateIngameEnemies(State& gs) {
 void updateIngameBonusShip(State& gs) {
     spawnBonusShip(gs); //movimento 
     updateBonusShipCollisions(gs); //colpita da player
+}
+
+
+bool updateTransitions(State& gs) {
+    //gameover
+    if(gs.gameoverTransition) {
+        if(gs.gameoverTransition_clock.getElapsedTime().asSeconds() >= 0.5) {
+            gs.gameoverTransition = false;
+            gs.gameOver = true; 
+            gs.soundtrack.stop();
+            gs.explosions.clear();
+            gs.enemyBullets.clear();
+            gs.playerBullets.clear();
+            
+            //aggiorna qui schermata di gameover per evitare compaia durante la transizione
+            gs.end.update(gs.player.score); //basta aggiornarlo al gameover
+            gs.end.updateCaption();
+        }
+        return true; //con true blocca gameplay
+    }
+
+    //prossimo livello
+    if(gs.nextLevelTransition) {
+        if(gs.nextLevelTransition_clock.getElapsedTime().asSeconds() >= 0.5) {
+            gs.nextLevelTransition = false;
+
+            gs.player.level++;
+            gs.player.lifes++;
+            gs.player.shields++;
+            
+            gs.playerBullets.clear();
+            gs.enemyBullets.clear();
+            gs.explosions.clear();
+
+            gs.isShield = false;
+            gs.shieldChargerReleased = false;
+            gs.existsNuke = false;
+            gs.existsBonusShip = false;
+
+            gs.player.resetPosition();
+            gs.initEnemies();
+            gs.right_dir = true; 
+            
+            gs.move_clock.restart(); //resetta clock velocita enemies
+        }
+        return true; 
+    }
+
+    //controlla sconfitta
+    bool lost = false;
+    if(gs.player.lifes < 0) {
+        lost = true;
+    } 
+    else if(!gs.enemies.empty()) {
+        for(auto& enemy : gs.enemies) {
+            if(enemy.sprite.getPosition().y > sf::VideoMode::getDesktopMode().size.y * 0.7) {
+                lost = true;
+                break;
+            }
+        }
+    }
+
+    if(lost) {
+        gs.gameoverTransition = true;
+        gs.gameoverTransition_clock.restart();
+        return true; 
+    }
+
+    //controlla vittoria
+    if(gs.enemies.empty()) {
+        gs.nextLevelTransition = true;
+        gs.nextLevelTransition_clock.restart();
+        return true;
+    }
+
+    //nessuna transizione gioco continua normalmente
+    return false; 
+}
+
+
+void updateFloatingTexts(State& gs) {
+    for(int i = gs.floatingTexts.size() - 1; i >= 0; i--) {
+        gs.floatingTexts[i].animate();
+        if(gs.floatingTexts[i].expired()) {
+            gs.floatingTexts.erase(gs.floatingTexts.begin() + i);
+        }
+    }
 }

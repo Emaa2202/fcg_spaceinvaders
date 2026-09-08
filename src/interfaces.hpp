@@ -86,3 +86,15 @@ struct Background {
     void animate();
     void draw(sf::RenderWindow& window);
 };
+
+
+struct FloatingText {
+    sf::Text text;
+    sf::Clock clock;
+    float duration = 1.0;
+
+    FloatingText(const sf::Font& font, const std::string& str, sf::Vector2f pos);
+    bool expired();
+    void animate();
+    void draw(sf::RenderWindow& window);
+};
