@@ -13,3 +13,4 @@ Dentro la cartella fcg_spaceinvaders:
 
 ## Variazioni comandi
 - Da tppa 2-10 compresa: movimento con freccia destra e sinistra
+- Tappa 12: lo scudo si attiva con la freccia in alto
