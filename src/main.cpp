@@ -331,27 +331,25 @@ void updateEnemies(State& gs) {
                 if(x < minX) minX = x;
             }
             
-            if((maxX + dist >= gs.windowWidth - (gs.windowWidth * 0.044) && gs.right_dir) || (minX - dist <= (gs.windowWidth * 0.044) && !gs.right_dir)) {
-                edge = true;
-            }
-
+            if((maxX + dist >= gs.windowWidth - (gs.windowWidth * 0.044) && gs.right_dir) || (minX - dist <= (gs.windowWidth * 0.044) && !gs.right_dir)) edge = true;
+            
             if(edge) {
                 gs.right_dir = !gs.right_dir;
                 for(auto& enemy : gs.enemies) {
-                    enemy.sprite.move(sf::Vector2f(0.0, gs.windowHeight * 0.019)); //nemici scendono
                     enemy.animate(); //sprite animaz
+                    enemy.sprite.move(sf::Vector2f(0.0, gs.windowHeight * 0.019)); //nemici scendono
                 }
             }
             else {
                 for(auto& enemy : gs.enemies) {
                     if(gs.right_dir) enemy.sprite.move(sf::Vector2f(dist, 0.0));
                     else enemy.sprite.move(sf::Vector2f(-dist, 0.0));
-                    enemy.animate();  
+                    enemy.animate(); //sprite animaz
                 }
             }
-             gs.move_clock.restart();
+            gs.move_clock.restart();
         }
-    }     
+    }    
 }
 
 
