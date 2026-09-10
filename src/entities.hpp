@@ -104,7 +104,7 @@ struct Player {
 };
 
 struct playerBullet {
-	float speed = 45.0;
+	float speed = sf::VideoMode::getDesktopMode().size.y * 0.021;
 	sf::Sprite sprite;
 
 	playerBullet(const sf::Texture& texture, sf::Vector2f pos_iniziale) :
@@ -133,7 +133,7 @@ struct Shield {
 
 struct Nuke {   
     sf::Sprite sprite;
-    float speed = 15.0;
+    float speed = sf::VideoMode::getDesktopMode().size.y * 0.007;
 
     Nuke(const sf::Texture& texture) :
         sprite(texture)
@@ -227,7 +227,7 @@ struct Enemy {
 };
 
 struct enemyBullet {
-    float speed = 15.0;
+    float speed = sf::VideoMode::getDesktopMode().size.y * 0.007;
     sf::Sprite sprite;
 	sf::Vector2f pos;
 
@@ -242,7 +242,7 @@ struct enemyBullet {
 
 
 struct ShieldCharger {
-    float speed = 15.0;
+    float speed = sf::VideoMode::getDesktopMode().size.y * 0.007;
     sf::Sprite sprite;
     bool isReleased = false;
 
@@ -289,7 +289,7 @@ struct ShieldCharger {
 struct BonusShip {   
     sf::Sprite sprite;
     int lifes = 3;
-    float speed = 8.0;
+    float speed = sf::VideoMode::getDesktopMode().size.x * 0.004;
     bool rightDirection = true;
     bool exists = false; //per capire se disegnarla
 

@@ -387,6 +387,9 @@ State::State(const std::string& path_to_media) :
         window.create(sf::VideoMode({desktop.size.x, desktop.size.y}), "Space Invaders");
         window.setFramerateLimit(60);
 
+        windowWidth = static_cast<float>(window.getSize().x);
+        windowHeigth = static_cast<float>(window.getSize().y);
+
         std::string pathSfondo = mediaDir + "/png/background.png"; 
         background.load(pathSfondo, window.getSize());
 

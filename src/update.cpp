@@ -195,6 +195,7 @@ void updateBonusShipCollisions(State& gs) { //nave colpita
 
 
 //spostamento nemici
+//fix: il mio schermo è 3840x2160 cambio tutto in dim relative
 void moveEnemies(State& gs) {           
     for(auto& enemy : gs.enemies) {
         if(enemy.type == Type1 || enemy.type == Type2) enemy.animate();
@@ -205,7 +206,7 @@ void moveEnemies(State& gs) {
 
     if(gs.move_clock.getElapsedTime().asSeconds() >= secondsToElapse) {
         if(!gs.enemies.empty()) {
-            float dist = std::clamp(3000.0 / gs.enemies.size(), 70.0, 80.0); //con clamp definisco lim min e max di tempo da contare
+            float dist = std::clamp(gs.windowWidth * 0.78 / gs.enemies.size(), gs.windowWidth * 0.018, gs.windowWidth * 0.021); //con clamp definisco lim min e max di distanza da contare
             bool edge = false;
 
             float minX = gs.enemies[0].sprite.getPosition().x; //trova estremi
@@ -216,15 +217,13 @@ void moveEnemies(State& gs) {
                 if(x < minX) minX = x;
             }
             
-            float windowWidth = static_cast<float>(gs.window.getSize().x);
-            
-            if((maxX + dist >= windowWidth - 170.0 && gs.right_dir) || (minX - dist <= 170.0 && !gs.right_dir)) edge = true;
+            if((maxX + dist >= gs.windowWidth - (gs.windowWidth * 0.044) && gs.right_dir) || (minX - dist <= (gs.windowWidth * 0.044) && !gs.right_dir)) edge = true;
             
             if(edge) {
                 gs.right_dir = !gs.right_dir;
                 for(auto& enemy : gs.enemies) {
                     if(enemy.type == Type3) enemy.animate(); //sprite animaz
-                    enemy.sprite.move(sf::Vector2f(0.0,40.0)); //nemici scendono
+                    enemy.sprite.move(sf::Vector2f(0.0, gs.windowHeigth * 0.019)); //nemici scendono
                 }
             }
             else {
