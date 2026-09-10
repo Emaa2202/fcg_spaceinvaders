@@ -398,8 +398,9 @@ void State::initEnemies() {
     float screenWidth = static_cast<float>(sf::VideoMode::getDesktopMode().size.x);
     float screenHeight = static_cast<float>(sf::VideoMode::getDesktopMode().size.y);
     
-    float distX = 250; //distanze tra nemici
-    float distY = 130;
+    //fix: il mio schermo è 3840x2160, prima la distX era 250-130 pixel, cambio tutto in dim relative
+    float distX = screenWidth * 0.065; //distanze tra nemici
+    float distY = screenHeight * 0.06;
     
     float gridWidth = (columns - 1) * distX; //dimensioni griglia
     float gridHeight = (rows - 1) * distY;
