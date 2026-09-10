@@ -22,7 +22,7 @@ struct State {
     
     sf::RenderWindow window;
     float windowWidth;
-    float windowHeigth;
+    float windowHeight;
 
     Player player;
         std::vector<playerBullet> playerBullets;

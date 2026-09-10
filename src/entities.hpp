@@ -47,14 +47,13 @@ struct Player {
         sprite.setTextureRect(sf::IntRect({0, 0}, {frameWidth, frameHeight})); //sprite predefinito, y sempre 0 perchè uso hpp 
         
         centerOrigin(sprite);
-        sprite.setScale(sf::Vector2f(0.3, 0.4));
-        sprite.setPosition(sf::Vector2f(static_cast<float>(sf::VideoMode::getDesktopMode().size.x) / 2.0, static_cast<float>(sf::VideoMode::getDesktopMode().size.y) * 0.8));    
+        sprite.setScale(sf::Vector2f(0.1, 0.12));
+        sprite.setPosition(sf::Vector2f(1280 / 2.0, 720 * 0.8));    
 	    
     }
 
     void move() {
-        sf::Vector2u windowSize = sf::VideoMode::getDesktopMode().size;
-        int speed = windowSize.x * 0.0026; //controllando a ogni frame (non piu handle) va diminuita la velocita 
+        int speed = 1280 * 0.0026; //controllando a ogni frame (non piu handle) va diminuita la velocita 
         animate();
 
 	    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Left)) { //isKeyPressed invece di keyPressed per controllo tempo reale, permette di muoversi e sparare insieme
@@ -67,18 +66,18 @@ struct Player {
         sf::Vector2f pos = sprite.getPosition();
         float half_width = sprite.getGlobalBounds().size.x / 2.0;
         float min_x = half_width; 
-        float max_x = static_cast<float>(windowSize.x) - half_width;
+        float max_x = 1280 - half_width;
 
         pos.x = std::clamp(pos.x, min_x, max_x); //costringe posx ad essere compresa tra min e max
         sprite.setPosition(pos);
     }
 
     void resetPosition() {
-        sprite.setPosition(sf::Vector2f(static_cast<float>(sf::VideoMode::getDesktopMode().size.x) / 2.0, static_cast<float>(sf::VideoMode::getDesktopMode().size.y) * 0.8)); 
+        sprite.setPosition(sf::Vector2f(1280 / 2.0, 720 * 0.8)); 
     }
 
     void resetAll() {
-        sprite.setPosition(sf::Vector2f(static_cast<float>(sf::VideoMode::getDesktopMode().size.x) / 2.0, static_cast<float>(sf::VideoMode::getDesktopMode().size.y) * 0.8));
+        sprite.setPosition(sf::Vector2f(1280 / 2.0, 720 * 0.8));
         lifes = 3;
         score = 0;
         level = 1;
@@ -104,7 +103,7 @@ struct Player {
 };
 
 struct playerBullet {
-	float speed = sf::VideoMode::getDesktopMode().size.y * 0.021;
+	float speed = 720 * 0.021;
 	sf::Sprite sprite;
 
 	playerBullet(const sf::Texture& texture, sf::Vector2f pos_iniziale) :
@@ -112,6 +111,7 @@ struct playerBullet {
 	{
 		centerOrigin(sprite);
 		sprite.setPosition(pos_iniziale);
+        sprite.setScale(sf::Vector2f(0.6, 0.6));
 	}
 };
 
@@ -125,7 +125,7 @@ struct Shield {
         sprite(texture)
     {
         centerOrigin(sprite);
-        sprite.setScale(sf::Vector2f(0.5, 0.5));
+        sprite.setScale(sf::Vector2f(0.15, 0.15));
         sprite.setColor(sf::Color(255, 255, 255, 100)); //leggermente trasparente
     }
 };
@@ -133,13 +133,13 @@ struct Shield {
 
 struct Nuke {   
     sf::Sprite sprite;
-    float speed = sf::VideoMode::getDesktopMode().size.y * 0.007;
+    float speed = 720 * 0.007;
 
     Nuke(const sf::Texture& texture) :
         sprite(texture)
     {
         centerOrigin(sprite);
-        sprite.setScale(sf::Vector2f(0.4, 0.5));
+        sprite.setScale(sf::Vector2f(0.1, 0.2));
     }
 };
 
@@ -181,19 +181,19 @@ struct Enemy {
 
         switch(type){
             case Type1:
-                sprite.setScale(sf::Vector2f(0.6, 0.6));
+                sprite.setScale(sf::Vector2f(0.3, 0.3));
                 sec_per_frame = 0.15;
                 points = 10;
             break;
 
             case Type2:
-                sprite.setScale(sf::Vector2f(0.7, 0.7));
+                sprite.setScale(sf::Vector2f(0.4, 0.4));
                 sec_per_frame = 0.35;
                 points = 15;
             break;
 
             case Type3:
-                sprite.setScale(sf::Vector2f(0.7, 0.7));
+                sprite.setScale(sf::Vector2f(0.4, 0.4));
                 sec_per_frame = 0.5;
                 points = 20;
             break;
@@ -227,7 +227,7 @@ struct Enemy {
 };
 
 struct enemyBullet {
-    float speed = sf::VideoMode::getDesktopMode().size.y * 0.007;
+    float speed = 720 * 0.007;
     sf::Sprite sprite;
 	sf::Vector2f pos;
 
@@ -236,13 +236,14 @@ struct enemyBullet {
 		sprite(texture)
 	{
 		centerOrigin(sprite);
+        sprite.setScale(sf::Vector2f(0.3, 0.6));
 		sprite.setPosition(pos);
 	}
 };
 
 
 struct ShieldCharger {
-    float speed = sf::VideoMode::getDesktopMode().size.y * 0.007;
+    float speed = 720 * 0.007;
     sf::Sprite sprite;
     bool isReleased = false;
 
@@ -261,7 +262,7 @@ struct ShieldCharger {
         sprite.setTextureRect(sf::IntRect({0, 0}, {frameWidth, frameHeight})); //sprite predefinito, y sempre 0 perchè uso hpp 
 
         centerOrigin(sprite);
-        sprite.setScale(sf::Vector2f(0.3, 0.3));
+        sprite.setScale(sf::Vector2f(0.15, 0.15));
     }
 
     //per gestire gli scudi bonus (ausiliaria di updatePlayerBulletsCollisions in update)
@@ -289,7 +290,7 @@ struct ShieldCharger {
 struct BonusShip {   
     sf::Sprite sprite;
     int lifes = 3;
-    float speed = sf::VideoMode::getDesktopMode().size.x * 0.004;
+    float speed = 1280 * 0.003;
     bool rightDirection = true;
     bool exists = false; //per capire se disegnarla
 
@@ -308,11 +309,11 @@ struct BonusShip {
         sprite.setTextureRect(sf::IntRect({0, 0}, {frameWidth, frameHeight})); 
         
         centerOrigin(sprite);
-        sprite.setScale(sf::Vector2f(0.5, 0.5));
+        sprite.setScale(sf::Vector2f(0.3, 0.3));
     }
 
     void spawn() {
-        float distY = sf::VideoMode::getDesktopMode().size.y * 0.05; //per impostare altezza navicella + controlli sotto
+        float distY = 720 * 0.06; //per impostare altezza navicella + controlli sotto
         if(!exists) {
             float spawnProb = rand() % 10000;
             if(spawnProb <= 1.0) exists = true; //1 su 10k frame circa
@@ -324,7 +325,7 @@ struct BonusShip {
             }
             else{
                 rightDirection = false;
-                sprite.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x, distY));
+                sprite.setPosition(sf::Vector2f(1280, distY));
             }
             lifes = 3;
             setDirection(rightDirection);
@@ -332,10 +333,10 @@ struct BonusShip {
         else {    
             move(rightDirection);
 
-            if(!rightDirection && sprite.getPosition() == sf::Vector2f(0.0, distY)) { 
+            if(!rightDirection && sprite.getPosition().x <= 0.0) { 
                 exists = false;
             }
-            else if(rightDirection && sprite.getPosition() == sf::Vector2f(sf::VideoMode::getDesktopMode().size.x, distY)) {
+            else if(rightDirection && sprite.getPosition().x >= 1280.0) {
                 exists = false;
             }
             animate();

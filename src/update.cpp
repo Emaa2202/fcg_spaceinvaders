@@ -46,7 +46,7 @@ void updatePlayerBulletsCollisions(State& gs) {
                     enemy.isAlive = false;
                     gs.player.score += enemy.points;
 
-                    Explosion exp(0.5, gs.assets.explosion_texture, enemy.sprite.getPosition());
+                    Explosion exp(0.2, gs.assets.explosion_texture, enemy.sprite.getPosition());
                     gs.explosions.push_back(exp);
 
                     playerBullet.sprite.setPosition(sf::Vector2f(0, -500));
@@ -66,7 +66,7 @@ void updatePlayerBulletsCollisions(State& gs) {
 
 void enablePlayerShield(State& gs) {
     if(gs.player.shields > 0) {
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::LShift) && gs.shield.cooldown.getElapsedTime().asSeconds() >= 1.0) {
+        if((sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::RShift)) && gs.shield.cooldown.getElapsedTime().asSeconds() >= 1.0) {
             gs.isShield = true;
             gs.shield.cooldown.restart();
             gs.shield.clock.restart();
@@ -84,7 +84,7 @@ void enablePlayerShield(State& gs) {
 
 
 void shootPlayerNuke(State& gs) {
-    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::W)) {
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Up)) {
         if(gs.player.nukes == 1) {
             gs.existsNuke = true;
             gs.player.nukes--;
@@ -123,8 +123,8 @@ void updateNukeCollision(State& gs) {
 
     //area esplosione
     if(hitTarget) {
-        float damageWidth = 500.0; //dim totali
-        float damageHeight = 260.0;
+        float damageWidth = gs.windowWidth * 0.065 * 2; //dim totali
+        float damageHeight = gs.windowHeight * 0.06 * 2;
         sf::Vector2f damagePosition(hitPos.x - (damageWidth / 2.0), hitPos.y - (damageHeight / 2.0)); //coordinate angolo alto sx dell esplosione
         sf::Vector2f damageSize(damageWidth, damageHeight); //raggruppa le dim in un unico oggetto 
         sf::FloatRect damageArea(damagePosition, damageSize); //unisce pos iniziale e dimensioni
@@ -141,7 +141,7 @@ void updateNukeCollision(State& gs) {
 
                     tempCounter++;
                     if(tempCounter == 1) { 
-                        Explosion exp(3.0, gs.assets.explosion_texture, hitPos);
+                        Explosion exp(1.0, gs.assets.explosion_texture, hitPos);
                         gs.explosions.push_back(exp);
                     }
                 }
@@ -164,8 +164,8 @@ void updateBonusShipCollisions(State& gs) { //nave colpita
             if(playerBulletBounds.findIntersection(bonusShipBounds).has_value()) {
                 gs.bonusship.lifes--;
                 
-                Explosion exp(0.5, gs.assets.explosion_texture, gs.bonusship.sprite.getPosition());
-                if(gs.bonusship.lifes == 0) exp.sprite.setScale(sf::Vector2f(3.0, 3.0));
+                Explosion exp(0.2, gs.assets.explosion_texture, gs.bonusship.sprite.getPosition());
+                if(gs.bonusship.lifes == 0) exp.sprite.setScale(sf::Vector2f(0.7, 0.7));
                 bullet.sprite.setPosition(sf::Vector2f(0, -500));
                 gs.explosions.push_back(exp);
             }
@@ -176,7 +176,7 @@ void updateBonusShipCollisions(State& gs) { //nave colpita
         if(gs.existsNuke && nukeBounds.findIntersection(bonusShipBounds).has_value()) {
             gs.bonusship.lifes = 0;
 
-            Explosion exp(3.0, gs.assets.explosion_texture, gs.nuke.sprite.getPosition()); 
+            Explosion exp(0.7, gs.assets.explosion_texture, gs.nuke.sprite.getPosition()); 
             gs.nuke.sprite.setPosition(sf::Vector2f(0, -500));
             gs.explosions.push_back(exp);
         }
@@ -223,7 +223,7 @@ void moveEnemies(State& gs) {
                 gs.right_dir = !gs.right_dir;
                 for(auto& enemy : gs.enemies) {
                     if(enemy.type == Type3) enemy.animate(); //sprite animaz
-                    enemy.sprite.move(sf::Vector2f(0.0, gs.windowHeigth * 0.019)); //nemici scendono
+                    enemy.sprite.move(sf::Vector2f(0.0, gs.windowHeight * 0.019)); //nemici scendono
                 }
             }
             else {
@@ -292,7 +292,7 @@ void updateEnemyBulletsCollisions(State& gs) {
                 gs.playerExplosion_sound.play();
             }
             
-            Explosion exp(0.5, gs.assets.explosion_texture, gs.player.sprite.getPosition());
+            Explosion exp(0.2, gs.assets.explosion_texture, gs.player.sprite.getPosition());
             gs.explosions.push_back(exp);
             enemyBullet.pos.y = -500;
         }
@@ -318,7 +318,7 @@ void pickShieldCharger(State& gs) {
             gs.shieldCharger.isReleased = false;
         }
 
-        else if(gs.shieldCharger.sprite.getPosition().y >= sf::VideoMode::getDesktopMode().size.y) {
+        else if(gs.shieldCharger.sprite.getPosition().y >= 720.0) {
             gs.shieldCharger.isReleased = false;
         }
     }
@@ -399,7 +399,7 @@ bool updateTransitions(State& gs) {
     } 
     else if(!gs.enemies.empty()) {
         for(auto& enemy : gs.enemies) {
-            if(enemy.sprite.getPosition().y > sf::VideoMode::getDesktopMode().size.y * 0.7) {
+            if(enemy.sprite.getPosition().y > 720 * 0.7) {
                 lost = true;
                 break;
             }
