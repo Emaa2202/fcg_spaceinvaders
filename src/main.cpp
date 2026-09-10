@@ -35,12 +35,13 @@ struct playerBullet {
 
 	playerBullet(const sf::Texture& texture, sf::Vector2f pos_iniziale) :
 		pos(pos_iniziale),
-		speed(45.0),
+		speed(720 * 0.021),
 		sprite(texture)
 	{
 		float centro_x = static_cast<float>(texture.getSize().x) / 2.0;
         float centro_y = static_cast<float>(texture.getSize().y) / 2.0;
         sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
+        sprite.setScale(sf::Vector2f(0.6, 0.6));
 		
 		sprite.setPosition(pos);
 	}
@@ -54,12 +55,13 @@ struct enemyBullet {
 
 	enemyBullet(const sf::Texture& texture, sf::Vector2f pos_iniziale) :
 		pos(pos_iniziale),
-		speed(20.0),
+		speed(720 * 0.007),
 		sprite(texture)
 	{
 		float centro_x = static_cast<float>(texture.getSize().x) / 2.0;
         float centro_y = static_cast<float>(texture.getSize().y) / 2.0;
         sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
+        sprite.setScale(sf::Vector2f(0.3, 0.6));
 		
 		sprite.setPosition(pos);
 	}
@@ -79,8 +81,8 @@ struct Enemy {
     int col; //colonna per capire se puo sparare
 
     //animazione
-    float frameWidth;
-    float frameHeight;
+    int frameWidth;
+    int frameHeight;
     int currentFrame = 0;
     sf::Clock cornometro_animaz;
     float sec_per_frame = 0.8;
@@ -132,6 +134,8 @@ struct Enemy {
 struct State {
     //risorse generali
     sf::RenderWindow window;
+    float windowWidth;
+    float windowHeight;
 
     sf::Texture background;
     sf::Sprite background_sprite;
@@ -172,26 +176,26 @@ struct State {
         float player_centro_y = static_cast<float>(player.getSize().y) / 2.0;
         player_sprite.setOrigin(sf::Vector2f(player_centro_x, player_centro_y));
 
-        player_sprite.setScale(sf::Vector2f(0.3, 0.4));
-        player_sprite.setPosition(sf::Vector2f(static_cast<float>(sf::VideoMode::getDesktopMode().size.x) / 2.0, static_cast<float>(sf::VideoMode::getDesktopMode().size.y) * 0.8)); 
-
-		//posizione player
+        player_sprite.setScale(sf::Vector2f(0.1, 0.12));
+        player_sprite.setPosition(sf::Vector2f(1280 / 2.0, 720 * 0.8));    
+		
+        //posizione player
 		playerpos = player_sprite.getPosition();
     }
     
     //posizionamento nemici
     void initEnemies() {
-        float screenWidth = static_cast<float>(sf::VideoMode::getDesktopMode().size.x);
-        float screenHeight = static_cast<float>(sf::VideoMode::getDesktopMode().size.y);
+        float screenWidth = 1280.0;
+        float screenHeight = 720.0;
 
-        float distX = 250; //distanze tra nemici
-        float distY = 130;
+        float distX = screenWidth * 0.065; //distanze tra nemici
+        float distY = screenHeight * 0.06;
 
         float gridWidth = (columns - 1) * distX; //dimensioni griglia
         float gridHeight = (rows - 1) * distY;
 
         float startX = (screenWidth - gridWidth) / 2; //posizionamento effettivo griglia
-        float startY = screenHeight * 0.07;
+        float startY = screenHeight * 0.014;
         
         for(int i = 0; i < rows; i++) {
             for(int j = 0; j < columns; j++) {
@@ -202,21 +206,21 @@ struct State {
                     Enemy en(enemy1_texture, Type1);
                     en.col = j;
                     en.sprite.setPosition(sf::Vector2f(posX, posY));
-                    en.sprite.setScale(sf::Vector2f(0.6, 0.6));
+                    en.sprite.setScale(sf::Vector2f(0.3, 0.3));
                     enemies.push_back(en);
                 } 
                 else if(i == 2 || i == 3){
                     Enemy en(enemy2_texture, Type2);
                     en.col = j;
                     en.sprite.setPosition(sf::Vector2f(posX, posY));
-                    en.sprite.setScale(sf::Vector2f(1.0, 1.0));
+                    en.sprite.setScale(sf::Vector2f(0.4, 0.4));
                     enemies.push_back(en);
                 }
                 else {
                     Enemy en(enemy3_texture, Type3);
                     en.col = j;
                     en.sprite.setPosition(sf::Vector2f(posX, posY));
-                    en.sprite.setScale(sf::Vector2f(0.8, 0.8));
+                    en.sprite.setScale(sf::Vector2f(0.4, 0.4));
                     enemies.push_back(en);
                 }
             }
@@ -246,9 +250,12 @@ struct State {
     {   
         //creazione finestra
         sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
-        window.create(sf::VideoMode({desktop.size.x, desktop.size.y}), "Space Invaders");
+        window.create(sf::VideoMode({1280, 720}), "Space Invaders");
         window.setFramerateLimit(60);
         
+        windowWidth = static_cast<float>(window.getSize().x);
+        windowHeight = static_cast<float>(window.getSize().y);
+
         //sfondo di dimensione dello schermo
         double background_scale_x = (static_cast<float>(desktop.size.x) / background.getSize().x); 
         double background_scale_y = (static_cast<float>(desktop.size.y) / background.getSize().y);
@@ -296,7 +303,7 @@ void handle(const sf::Event::KeyPressed &event, State &gs) {
 -------------Update------------
 ------------------------------*/
 void updatePlayer(State&gs) {
-    int speed = 10; //controllando a ogni frame (non piu handle) va diminuita la velocita 
+    int speed = 1280 * 0.0026; //controllando a ogni frame (non piu handle) va diminuita la velocita 
 
 	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Left)) { //isKeyPressed invece di keyPressed per controllo tempo reale, permette di muoversi e sparare insieme
 	    gs.playerpos.x -= speed;
@@ -346,14 +353,14 @@ void updateEnemies(State& gs) {
             
             float windowWidth = static_cast<float>(gs.window.getSize().x);
             
-            if((maxX + dist >= windowWidth - 170.0 && gs.right_dir) || (minX - dist <= 170.0 && !gs.right_dir)) {
+            if((maxX + dist >= gs.windowWidth - (gs.windowWidth * 0.044) && gs.right_dir) || (minX - dist <= (gs.windowWidth * 0.044) && !gs.right_dir)) {
                 edge = true;
             }
 
             if(edge) {
                 gs.right_dir = !gs.right_dir;
                 for(auto& enemy : gs.enemies) {
-                    enemy.sprite.move(sf::Vector2f(0.0, 50.0)); //nemici scendono
+                    enemy.sprite.move(sf::Vector2f(0.0, gs.windowHeight * 0.019)); //nemici scendono
                     enemy.animate(); //sprite animaz
                 }
             }
@@ -422,7 +429,7 @@ void updatePlayerBulletsCollisions(State& gs) {
                     
                     Explosion exp(gs.explosion_texture);
                     exp.sprite.setPosition(enemy.sprite.getPosition());
-                    exp.sprite.setScale(sf::Vector2f(0.5, 0.5));
+                    exp.sprite.setScale(sf::Vector2f(0.2, 0.2));
                     gs.explosions.push_back(exp);
 
                     playerBullet.pos.y = -500;
@@ -443,7 +450,7 @@ void updatePlayerBulletsCollisions(State& gs) {
     }
 
     for(int i = gs.explosions.size()-1; i >= 0; i--) {
-        if(gs.explosions[i].clock.getElapsedTime().asSeconds() >= 0.2f) {
+        if(gs.explosions[i].clock.getElapsedTime().asSeconds() >= 0.2) {
             gs.explosions.erase(gs.explosions.begin() + i);
         }
     }
@@ -461,7 +468,7 @@ void updateEnemyBulletsCollisions(State& gs) {
             
             Explosion exp(gs.explosion_texture);
             exp.sprite.setPosition(gs.player_sprite.getPosition());
-            exp.sprite.setScale(sf::Vector2f(0.5, 0.5));
+            exp.sprite.setScale(sf::Vector2f(0.2, 0.2));
             gs.explosions.push_back(exp);
             
             enemyBullet.pos.y = -500;
@@ -473,7 +480,7 @@ void updateEnemyBulletsCollisions(State& gs) {
     }
 
     for(int i = gs.explosions.size()-1; i >= 0; i--) {
-        if(gs.explosions[i].clock.getElapsedTime().asSeconds() >= 0.2f) { //dopo un po viene tolta
+        if(gs.explosions[i].clock.getElapsedTime().asSeconds() >= 0.2) { //dopo un po viene tolta
             gs.explosions.erase(gs.explosions.begin() + i);
         }
     }
