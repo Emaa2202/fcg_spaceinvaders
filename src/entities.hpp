@@ -28,18 +28,17 @@ struct Player {
         float player_centro_x = static_cast<float>(texture.getSize().x) / 2.0;
         float player_centro_y = static_cast<float>(texture.getSize().y) / 2.0;
         sprite.setOrigin(sf::Vector2f(player_centro_x, player_centro_y));    
-        sprite.setScale(sf::Vector2f(0.3, 0.4));
+        sprite.setScale(sf::Vector2f(0.12, 0.2));
         
-        sprite.setPosition(sf::Vector2f(static_cast<float>(sf::VideoMode::getDesktopMode().size.x) / 2.0, static_cast<float>(sf::VideoMode::getDesktopMode().size.y) * 0.8));    
-	    
+        sprite.setPosition(sf::Vector2f(1280 / 2.0, 720 * 0.8)); 
     }
 
     void resetPosition() {
-        sprite.setPosition(sf::Vector2f(static_cast<float>(sf::VideoMode::getDesktopMode().size.x) / 2.0, static_cast<float>(sf::VideoMode::getDesktopMode().size.y) * 0.8)); 
+        sprite.setPosition(sf::Vector2f(1280 / 2.0, 720 * 0.8)); 
     }
 
     void resetAll() {
-        sprite.setPosition(sf::Vector2f(static_cast<float>(sf::VideoMode::getDesktopMode().size.x) / 2.0, static_cast<float>(sf::VideoMode::getDesktopMode().size.y) * 0.8));
+        sprite.setPosition(sf::Vector2f(1280 / 2.0, 720 * 0.8)); 
         lifes = 3;
         score = 0;
         level = 1;
@@ -59,12 +58,12 @@ struct playerBullet {
 
 	playerBullet(const sf::Texture& texture, sf::Vector2f pos_iniziale) :
         sprite(texture),
-		speed(45.0)
+		speed(720 * 0.021)
 	{
 		float centro_x = static_cast<float>(texture.getSize().x) / 2.0;
         float centro_y = static_cast<float>(texture.getSize().y) / 2.0;
         sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
-		
+		sprite.setScale(sf::Vector2f(0.6, 0.6));
 		sprite.setPosition(pos_iniziale);
 	}
 };
@@ -85,8 +84,8 @@ struct Enemy {
     int points;
 
     //animazione
-    float frameWidth;
-    float frameHeight;
+    int frameWidth;
+    int frameHeight;
     int currentFrame = 0;
     sf::Clock cornometro_animaz;
     float sec_per_frame = 0.8;
@@ -110,17 +109,17 @@ struct Enemy {
 
         switch(type){
             case Type1:
-                sprite.setScale(sf::Vector2f(0.6, 0.6));
+                sprite.setScale(sf::Vector2f(0.3, 0.3));
                 points = 10;
             break;
 
             case Type2:
-                sprite.setScale(sf::Vector2f(1.0, 1.0));
+                sprite.setScale(sf::Vector2f(0.4, 0.4));
                 points = 15;
             break;
 
             case Type3:
-                sprite.setScale(sf::Vector2f(0.8, 0.8));
+                sprite.setScale(sf::Vector2f(0.4, 0.4));
                 points = 20;
             break;
         }
@@ -159,13 +158,13 @@ struct enemyBullet {
 
 	enemyBullet(const sf::Texture& texture, sf::Vector2f pos_iniziale) :
 		pos(pos_iniziale),
-		speed(20.0),
+		speed(720 * 0.007),
 		sprite(texture)
 	{
 		float centro_x = static_cast<float>(texture.getSize().x) / 2.0;
         float centro_y = static_cast<float>(texture.getSize().y) / 2.0;
         sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
-		
+		sprite.setScale(sf::Vector2f(0.3, 0.6));
 		sprite.setPosition(pos);
 	}
 };
@@ -197,7 +196,7 @@ struct Shield {
         float centro_y = static_cast<float>(texture.getSize().y) / 2.0;
         sprite.setOrigin(sf::Vector2f(centro_x, centro_y));
 
-        sprite.setScale(sf::Vector2f(0.5, 0.5));
+        sprite.setScale(sf::Vector2f(0.15, 0.15));
         sprite.setColor(sf::Color(255, 255, 255, 100)); //leggermente trasparente
     }
 

@@ -17,6 +17,8 @@ struct State {
     sf::Music soundtrack;
 
     sf::RenderWindow window;
+    float windowWidth;
+    float windowHeight;
 
     sf::Texture background;
     sf::Sprite background_sprite;
