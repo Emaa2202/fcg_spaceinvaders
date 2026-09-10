@@ -301,7 +301,7 @@ void updateEnemies(State& gs) {
 
     if(gs.move_clock.getElapsedTime().asSeconds() >= secondsToElapse) {
         if(!gs.enemies.empty()) {
-            float dist = std::clamp(gs.windowWidth * 0.78 / gs.enemies.size(), gs.windowWidth * 0.018, gs.windowWidth * 0.021); //con clamp definisco lim min e max di distanza da contare
+            float dist = 50;
             bool edge = false;
 
             float minX = gs.enemies[0].sprite.getPosition().x; //trova estremi
