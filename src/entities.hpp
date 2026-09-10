@@ -54,13 +54,13 @@ struct Player {
 
     void move() {
         sf::Vector2u windowSize = sf::VideoMode::getDesktopMode().size;
-        int speed = 10; //controllando a ogni frame (non piu handle) va diminuita la velocita 
+        int speed = windowSize.x * 0.0026; //controllando a ogni frame (non piu handle) va diminuita la velocita 
         animate();
 
-	    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A)) { //isKeyPressed invece di keyPressed per controllo tempo reale, permette di muoversi e sparare insieme
+	    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Left)) { //isKeyPressed invece di keyPressed per controllo tempo reale, permette di muoversi e sparare insieme
 	        sprite.move(sf::Vector2f(-speed, 0));
 	    }
-	    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D)) {
+	    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Right)) {
 	    	sprite.move(sf::Vector2f(speed, 0));
 	    }
 
