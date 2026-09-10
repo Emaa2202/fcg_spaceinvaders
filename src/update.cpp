@@ -210,7 +210,7 @@ void updateNukeCollision(State& gs) {
 void spawnNukeship(State& gs) {
     float distY = 720 * 0.06; //per impostare altezza navicella + controlli sotto
     if(!gs.existsNukeShip) {
-        float spawnProb = rand() % 10;
+        float spawnProb = rand() % 10000;
         if(spawnProb <= 1.0) gs.existsNukeShip = true; //1 su 10k frame circa
      
         float dirProb = rand() % 100;
