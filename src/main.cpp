@@ -292,14 +292,7 @@ void updateplayerBullets(State& gs) {
 
 //spostamento nemici
 void updateEnemies(State& gs) {
-    for(auto& enemy : gs.enemies) {
-        if(enemy.type == Type1 || enemy.type == Type2) enemy.animate();
-    }
-    
-    float secondsToElapse = std::clamp(gs.enemies.size()/60.0, 0.09, 1.0); //con clamp definisco lim min e max di tempo da contare, divido per 60 come il num iniziale di nemici
-    if(gs.enemies.size() == 1)secondsToElapse = 0.04; 
-
-    if(gs.move_clock.getElapsedTime().asSeconds() >= secondsToElapse) {
+    if(gs.move_clock.getElapsedTime().asSeconds() >= 1.0) {
         if(!gs.enemies.empty()) {
             float dist = 50;
             bool edge = false;
@@ -317,7 +310,7 @@ void updateEnemies(State& gs) {
             if(edge) {
                 gs.right_dir = !gs.right_dir;
                 for(auto& enemy : gs.enemies) {
-                    if(enemy.type == Type3) enemy.animate(); //sprite animaz
+                    enemy.animate(); //sprite animaz
                     enemy.sprite.move(sf::Vector2f(0.0, gs.windowHeight * 0.019)); //nemici scendono
                 }
             }
@@ -325,7 +318,7 @@ void updateEnemies(State& gs) {
                 for(auto& enemy : gs.enemies) {
                     if(gs.right_dir) enemy.sprite.move(sf::Vector2f(dist, 0.0));
                     else enemy.sprite.move(sf::Vector2f(-dist, 0.0));
-                    if(enemy.type == Type3) enemy.animate(); //sprite animaz
+                    enemy.animate(); //sprite animaz
                 }
             }
             gs.move_clock.restart();
