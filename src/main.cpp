@@ -320,7 +320,7 @@ void updateplayerBullets(State& gs) {
 void updateEnemies(State& gs) {
     if(gs.move_clock.getElapsedTime().asSeconds() >= 1.0) {
         if(!gs.enemies.empty()) {
-            float dist = gs.windowWidth * 0.78 / gs.enemies.size();
+            float dist = 50;
             bool edge = false;
 
             float minX = gs.enemies[0].sprite.getPosition().x; //trova estremi
