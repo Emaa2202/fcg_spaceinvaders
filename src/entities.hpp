@@ -36,17 +36,16 @@ struct Player {
     {   
         //sposta origine di player al centro dello sprite
         centerOrigin(sprite);
-        sprite.setScale(sf::Vector2f(0.3, 0.4));
-        sprite.setPosition(sf::Vector2f(static_cast<float>(sf::VideoMode::getDesktopMode().size.x) / 2.0, static_cast<float>(sf::VideoMode::getDesktopMode().size.y) * 0.8));    
-	    
+        sprite.setScale(sf::Vector2f(0.1, 0.12));
+        sprite.setPosition(sf::Vector2f(1280 / 2.0, 720 * 0.8)); 
     }
 
     void resetPosition() {
-        sprite.setPosition(sf::Vector2f(static_cast<float>(sf::VideoMode::getDesktopMode().size.x) / 2.0, static_cast<float>(sf::VideoMode::getDesktopMode().size.y) * 0.8)); 
+        sprite.setPosition(sf::Vector2f(1280 / 2.0, 720 * 0.8));
     }
 
     void resetAll() {
-        sprite.setPosition(sf::Vector2f(static_cast<float>(sf::VideoMode::getDesktopMode().size.x) / 2.0, static_cast<float>(sf::VideoMode::getDesktopMode().size.y) * 0.8));
+        sprite.setPosition(sf::Vector2f(1280 / 2.0, 720 * 0.8));
         lifes = 3;
         score = 0;
         level = 1;
@@ -61,7 +60,7 @@ struct Player {
 };
 
 struct playerBullet {
-	float speed = 45.0;
+	float speed = 720 * 0.021;
 	sf::Sprite sprite;
 
 	playerBullet(const sf::Texture& texture, sf::Vector2f pos_iniziale) :
@@ -69,6 +68,7 @@ struct playerBullet {
 	{
 		centerOrigin(sprite);
 		sprite.setPosition(pos_iniziale);
+        sprite.setScale(sf::Vector2f(0.6, 0.6));
 	}
 };
 
@@ -82,7 +82,7 @@ struct Shield {
         sprite(texture)
     {
         centerOrigin(sprite);
-        sprite.setScale(sf::Vector2f(0.5, 0.5));
+        sprite.setScale(sf::Vector2f(0.15, 0.15));
         sprite.setColor(sf::Color(255, 255, 255, 100)); //leggermente trasparente
     }
 
@@ -91,13 +91,13 @@ struct Shield {
 
 struct Nuke {   
     sf::Sprite sprite;
-    float speed = 15.0;
+    float speed = 720 * 0.007;
 
     Nuke(const sf::Texture& texture) :
         sprite(texture)
     {
         centerOrigin(sprite);
-        sprite.setScale(sf::Vector2f(0.5, 0.5));
+        sprite.setScale(sf::Vector2f(0.1, 0.2));
     }
 };
 
@@ -138,17 +138,17 @@ struct Enemy {
 
         switch(type){
             case Type1:
-                sprite.setScale(sf::Vector2f(0.6, 0.6));
+                sprite.setScale(sf::Vector2f(0.3, 0.3));
                 points = 10;
             break;
 
             case Type2:
-                sprite.setScale(sf::Vector2f(1.0, 1.0));
+                sprite.setScale(sf::Vector2f(0.4, 0.4));
                 points = 15;
             break;
 
             case Type3:
-                sprite.setScale(sf::Vector2f(0.8, 0.8));
+                sprite.setScale(sf::Vector2f(0.4, 0.4));
                 points = 20;
             break;
         }
@@ -180,7 +180,7 @@ struct Enemy {
 };
 
 struct enemyBullet {
-    float speed = 15.0;
+    float speed = 720 * 0.007;
     sf::Sprite sprite;
 	sf::Vector2f pos;
 
@@ -189,13 +189,14 @@ struct enemyBullet {
 		sprite(texture)
 	{
 		centerOrigin(sprite);
+        sprite.setScale(sf::Vector2f(0.3, 0.6));
 		sprite.setPosition(pos);
 	}
 };
 
 
 struct ShieldCharger {
-    float speed = 15.0;
+    float speed = 720 * 0.007;
     sf::Sprite sprite;
 
     int frameWidth;
@@ -213,7 +214,7 @@ struct ShieldCharger {
         sprite.setTextureRect(sf::IntRect({0, 0}, {frameWidth, frameHeight})); //sprite predefinito, y sempre 0 perchè uso hpp 
 
         centerOrigin(sprite);
-        sprite.setScale(sf::Vector2f(0.3, 0.3));
+        sprite.setScale(sf::Vector2f(0.15, 0.15));
     }
 
     void animate() {
@@ -232,7 +233,7 @@ struct ShieldCharger {
 struct Nukeship {   
     sf::Sprite sprite;
     int lifes = 3;
-    float speed = 8.0;
+    float speed = 1280 * 0.003;
     bool rightDirection = true;
 
     int frameWidth;
@@ -247,7 +248,7 @@ struct Nukeship {
         sprite.setTextureRect(sf::IntRect({0, 0}, {frameWidth, frameHeight})); 
         
         centerOrigin(sprite);
-        sprite.setScale(sf::Vector2f(0.5, 0.5));
+        sprite.setScale(sf::Vector2f(0.3, 0.3));
     }
 
     void setDirection(bool isRight) {

@@ -20,6 +20,9 @@ struct State {
     sf::Music soundtrack;
     
     sf::RenderWindow window;
+    float windowWidth;
+    float windowHeight;
+    
     sf::Sprite background_sprite;
     
     Player player;

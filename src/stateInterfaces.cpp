@@ -22,24 +22,23 @@ Start::Start() :
 
         //titolo
         title.setString("Space Invaders");
-        title.setCharacterSize(256);
+        title.setCharacterSize(120);
         
         sf::FloatRect bounds = title.getLocalBounds();
         title.setOrigin(sf::Vector2f(bounds.size.x / 2, bounds.size.y / 2));
 
         title.setFillColor(sf::Color::White);
-        title.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, (sf::VideoMode::getDesktopMode().size.y/ 2.0) * 0.5));
+        title.setPosition(sf::Vector2f(1280.0 / 2.0, (720.0/ 2.0) * 0.5));
 
         //mex di premere invio
         caption.setString("Premi invio per giocare");
-        caption.setCharacterSize(64);
+        caption.setCharacterSize(50);
 
         sf::FloatRect cbounds = caption.getLocalBounds();
         caption.setOrigin(sf::Vector2f(cbounds.size.x / 2, cbounds.size.y / 2));
 
         caption.setFillColor(sf::Color::White);
-        caption.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, (sf::VideoMode::getDesktopMode().size.y/ 2.0) * 0.8));
-
+        caption.setPosition(sf::Vector2f(1280.0 / 2.0, (720.0/ 2.0) * 0.8));
 }
 
 void Start::updateCaption() {
@@ -69,32 +68,31 @@ End::End() :
 
         //titolo
         title.setString("Game Over!");
-        title.setCharacterSize(256);
+        title.setCharacterSize(120);
 
         sf::FloatRect bounds = title.getLocalBounds();
         title.setOrigin(sf::Vector2f(bounds.size.x / 2, bounds.size.y / 2));
 
         title.setFillColor(sf::Color::White);
-        title.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, (sf::VideoMode::getDesktopMode().size.y/ 2.0) * 0.3));
-
-        //mex di premere invio
-        caption.setString("Premi invio per giocare ancora");
-        caption.setCharacterSize(64);
-
-        sf::FloatRect cbounds = caption.getLocalBounds();
-        caption.setOrigin(sf::Vector2f(cbounds.size.x / 2, cbounds.size.y / 2));
-
-        caption.setFillColor(sf::Color::White);
-        caption.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, (sf::VideoMode::getDesktopMode().size.y/ 2.0) * 0.7));
+        title.setPosition(sf::Vector2f(1280 / 2.0, (720/ 2.0) * 0.3));
 
         //punti
         finalScore.setString("Punteggio: 0");
-        finalScore.setCharacterSize(128);
+        finalScore.setCharacterSize(50);
         finalScore.setFillColor(sf::Color::White);
         
         sf::FloatRect sbounds = finalScore.getLocalBounds();
         finalScore.setOrigin(sf::Vector2f(sbounds.size.x / 2, sbounds.size.y / 2));
-        finalScore.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, (sf::VideoMode::getDesktopMode().size.y/ 2.0) * 0.5));
+        finalScore.setPosition(sf::Vector2f(1280 / 2.0, title.getPosition().y * 2));
+
+        //mex di premere invio
+        caption.setString("Premi invio per giocare ancora");
+        caption.setCharacterSize(30);
+
+        sf::FloatRect cbounds = caption.getLocalBounds();
+        caption.setOrigin(sf::Vector2f(cbounds.size.x / 2, cbounds.size.y));
+        caption.setFillColor(sf::Color::White);
+        caption.setPosition(sf::Vector2f(1280 / 2.0, finalScore.getPosition().y * 1.3));
 }
 
 void End::updateCaption() {
@@ -130,29 +128,29 @@ Ui::Ui() :
         
         //punti
         scoreText.setString("Punteggio: 0");
-        scoreText.setCharacterSize(64);
+        scoreText.setCharacterSize(32);
         scoreText.setFillColor(sf::Color::White);
-        scoreText.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x * 0.01, sf::VideoMode::getDesktopMode().size.y * 0.89));
+        scoreText.setPosition(sf::Vector2f(1280 * 0.01, 720 * 0.9)); //position rispetto a origine, globalbounds rispetto a fone testo
         
         //vite
         livesText.setString("Vite: 3");
-        livesText.setCharacterSize(64);
+        livesText.setCharacterSize(32);
         livesText.setFillColor(sf::Color::White);
-        livesText.setPosition(sf::Vector2f(scoreText.getGlobalBounds().position.x + scoreText.getGlobalBounds().size.x * 1.4, sf::VideoMode::getDesktopMode().size.y * 0.89));
+        livesText.setPosition(sf::Vector2f(scoreText.getPosition().x + scoreText.getGlobalBounds().size.x * 1.5, 720 * 0.9));
 
 
         //scudi
         shieldText.setString("Scudi: 2");
-        shieldText.setCharacterSize(64);
+        shieldText.setCharacterSize(32);
         shieldText.setFillColor(sf::Color::White);
-        shieldText.setPosition(sf::Vector2f(livesText.getGlobalBounds().position.x + livesText.getGlobalBounds().size.x * 1.6, sf::VideoMode::getDesktopMode().size.y * 0.89));
+        shieldText.setPosition(sf::Vector2f(livesText.getPosition().x + livesText.getGlobalBounds().size.x * 1.5, 720 * 0.9));
 
         //contatore livelli
         levelText.setString("Livello: 1");
-        levelText.setCharacterSize(64);
+        levelText.setCharacterSize(32);
         levelText.setFillColor(sf::Color::White);
-        levelText.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x * 0.85, sf::VideoMode::getDesktopMode().size.y * 0.89));
-}
+        levelText.setPosition(sf::Vector2f(1280 * 0.8, 720 * 0.9));
+    }
 
 void Ui::update(int playerLifes, int playerScore, int level, int shield) {
     livesText.setString("Vite: " + std::to_string(playerLifes));
@@ -179,28 +177,28 @@ Pause::Pause() :
 
         //titolo
         title.setString("Pausa");
-        title.setCharacterSize(412);
+        title.setCharacterSize(120);
         
         sf::FloatRect bounds = title.getLocalBounds();
         title.setOrigin(sf::Vector2f(bounds.size.x / 2, bounds.size.y / 2));
 
         title.setFillColor(sf::Color::White);
-        title.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, (sf::VideoMode::getDesktopMode().size.y/ 2.0) * 0.5));
+        title.setPosition(sf::Vector2f(1280 / 2.0, (720/ 2.0) * 0.5));
 
         selectedCaptionIndex = 0; //prima di default
         for(int i = 0; i < 2; ++i) {
             sf::Text text(font);
             if(i == 0) text.setString("Riprendi");
             else text.setString("Esci");
-            text.setCharacterSize(128);
+            text.setCharacterSize(32);
             
             sf::FloatRect textBounds = text.getLocalBounds();
             text.setOrigin(sf::Vector2f(textBounds.size.x / 2, textBounds.size.y / 2));
             
             //una sotto l'altra
-            if(i == 0) text.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, sf::VideoMode::getDesktopMode().size.y/ 2.0 * 0.6 + 300));
-            else text.setPosition(sf::Vector2f(sf::VideoMode::getDesktopMode().size.x / 2.0, sf::VideoMode::getDesktopMode().size.y/ 2.0 * 0.6 + 450));
-            
+            if(i == 0) text.setPosition(sf::Vector2f(1280 / 2.0, 720/ 2.0 * 0.8));
+            else text.setPosition(sf::Vector2f(1280 / 2.0, 720/ 2.0));
+
             //evidenzia
             if(i == 0) text.setFillColor(sf::Color::White);
             else text.setFillColor(sf::Color(128,128,128));
@@ -274,8 +272,11 @@ State::State() :
 
         //creazione finestra
         sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
-        window.create(sf::VideoMode({desktop.size.x, desktop.size.y}), "Space Invaders");
+        window.create(sf::VideoMode({1280, 720}), "Space Invaders");
         window.setFramerateLimit(60);
+
+        windowWidth = static_cast<float>(window.getSize().x);
+        windowHeight = static_cast<float>(window.getSize().y);
 
         //sfondo di dimensione dello schermo
         double background_scale_x = (static_cast<float>(desktop.size.x) / assets.background.getSize().x); 
@@ -288,17 +289,18 @@ State::State() :
 
 //posizionamento nemici
 void State::initEnemies() {
-    float screenWidth = static_cast<float>(sf::VideoMode::getDesktopMode().size.x);
-    float screenHeight = static_cast<float>(sf::VideoMode::getDesktopMode().size.y);
+    float screenWidth = 1280.0;
+    float screenHeight = 720.0;
     
-    float distX = 250; //distanze tra nemici
-    float distY = 130;
+    //fix: il mio schermo è 3840x2160, prima la distX era 250-130 pixel, cambio tutto in dim relative
+    float distX = screenWidth * 0.065; //distanze tra nemici
+    float distY = screenHeight * 0.06;
     
     float gridWidth = (columns - 1) * distX; //dimensioni griglia
     float gridHeight = (rows - 1) * distY;
     
     float startX = (screenWidth - gridWidth) / 2; //posizionamento effettivo griglia
-    float startY = screenHeight * 0.12;
+    float startY = screenHeight * 0.14;
      
     for(int i = 0; i < rows; i++) {
         for(int j = 0; j < columns; j++) {
@@ -316,7 +318,6 @@ void State::initEnemies() {
             }
         }
     }
-
     enemiesQuantity = enemies.size(); //inizializza contatore nemici
 }
 
