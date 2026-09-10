@@ -15,6 +15,7 @@ Questo file contiene:
 #include <SFML/Graphics.hpp>
 #include<SFML/Audio.hpp>
 #include <vector>
+#include <algorithm>
 
 inline void centerOrigin(sf::Sprite& sprite) { //inline per evitare dichiarazione multipla
     sf::FloatRect bounds = sprite.getLocalBounds();
