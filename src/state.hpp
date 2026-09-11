@@ -21,7 +21,9 @@ struct State {
     sf::Music soundtrack;
     
     sf::RenderWindow window;
-    
+    float windowWidth;
+    float windowHeight;
+
     Player player;
         std::vector<playerBullet> playerBullets;
         sf::Sound playerBullets_sound; 
