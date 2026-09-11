@@ -188,13 +188,13 @@ struct Enemy {
             break;
 
             case Type2:
-                sprite.setScale(sf::Vector2f(0.4, 0.4));
+                sprite.setScale(sf::Vector2f(0.3, 0.3));
                 sec_per_frame = 0.35;
                 points = 15;
             break;
 
             case Type3:
-                sprite.setScale(sf::Vector2f(0.4, 0.4));
+                sprite.setScale(sf::Vector2f(0.25, 0.25));
                 sec_per_frame = 0.5;
                 points = 20;
             break;
@@ -268,7 +268,7 @@ struct ShieldCharger {
 
     //per gestire gli scudi bonus (ausiliaria di updatePlayerBulletsCollisions in update)
     void drop(Enemy& enemy) {
-        float prob = rand() % 10000;
+        float prob = rand() % 1000;
         if(prob <= 3.0 && !isReleased) {
             isReleased = true;
             sprite.setPosition(enemy.sprite.getPosition());
